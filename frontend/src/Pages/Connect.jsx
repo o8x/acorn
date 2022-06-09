@@ -7,6 +7,29 @@ import {EditOutlined} from "@ant-design/icons"
 import {Option} from "antd/es/mentions"
 import {Link} from "react-router-dom"
 
+import centosLogo from "../assets/images/centos-logo.png"
+import debianLogo from "../assets/images/debian-logo.jpg"
+import linuxLogo from "../assets/images/linux-logo.png"
+import openwrtLogo from "../assets/images/openwrt-logo.png"
+import ubuntuLogo from "../assets/images/ubuntu-logo.png"
+import windowsLogo from "../assets/images/windows-logo.png"
+
+function getLogoSrc(type) {
+    switch (type.toLowerCase()) {
+        case "centos":
+            return centosLogo
+        case "debian":
+            return debianLogo
+        case "openwrt":
+            return openwrtLogo
+        case "ubuntu":
+            return ubuntuLogo
+        case "windows":
+            return windowsLogo
+    }
+    return linuxLogo
+}
+
 export default class extends React.Component {
     state = {
         list: [], quickAddInput: "", quickAddInputLoading: false,
@@ -99,6 +122,10 @@ export default class extends React.Component {
                     <Form.Item label="操作系统" name="type">
                         <Select placeholder="操作系统">
                             <Option value="linux">Linux</Option>
+                            <Option value="centos">CentOS</Option>
+                            <Option value="ubuntu">Ubuntu</Option>
+                            <Option value="debian">Debian</Option>
+                            <Option value="openwrt">OpenWRT</Option>
                             <Option value="windows">Windows</Option>
                         </Select>
                     </Form.Item>
@@ -272,7 +299,7 @@ export default class extends React.Component {
                         <a key="list-edit" onClick={() => this.editConnect(item)}>编辑</a>,
                         <a key="list-more" onClick={() => this.deleteSSHConnect(item)}>删除</a>]}>
                     <List.Item.Meta
-                        avatar={<Avatar src="https://randomuser.me/api/portraits/women/51.jpg"/>}
+                        avatar={<Avatar src={getLogoSrc(item.type)}/>}
                         title={<span className="title" onDoubleClick={() => this.SSHConnect(item)}>
                                 {item.label === "" ? "未命名" : item.label} ({item.username}@{item.host})
                                 <a href="#" onClick={() => this.editConnectLabel(item)}><EditOutlined/></a>
