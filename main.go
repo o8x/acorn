@@ -5,11 +5,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/o8x/acorn/backend"
-	"github.com/o8x/acorn/backend/database"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
+
+	"github.com/o8x/acorn/backend"
+	"github.com/o8x/acorn/backend/controller"
+	"github.com/o8x/acorn/backend/database"
 )
 
 //go:embed frontend/dist
@@ -25,6 +27,7 @@ var (
 func main() {
 	conn := backend.NewConnect()
 	app := backend.NewApp()
+	transfer := controller.NewTransfer()
 
 	if err := database.Init(DefaultFileName); err != nil {
 		panic(err)
@@ -40,6 +43,7 @@ func main() {
 		OnStartup:     app.Startup,
 		Bind: []interface{}{
 			conn,
+			transfer,
 		},
 		Mac: &mac.Options{
 			TitleBar: &mac.TitleBar{

@@ -264,6 +264,9 @@ export default class extends React.Component {
                         <a key="list-xterm">
                             <Link to={`/terminal/${item.id}`}>xTerm</Link>
                         </a>,
+                        <a key="list-xterm">
+                            <Link to={`/transfer/${item.id}`}>传输</Link>
+                        </a>,
                         <a key="list-copy-id" onClick={() => this.SSHCopyID(item)}>COPY-ID</a>,
                         <a key="list-edit" onClick={() => this.ping(item)}>PING</a>,
                         <a key="list-edit" onClick={() => this.editConnect(item)}>编辑</a>,

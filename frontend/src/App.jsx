@@ -6,6 +6,7 @@ import {ApartmentOutlined, FileSyncOutlined, ToolOutlined} from "@ant-design/ico
 import "./App.css"
 import Connect from "./Pages/Connect"
 import Terminal from "./Pages/Terminal"
+import Transfer from "./Pages/Transfer"
 
 const {Title} = Typography
 const {Content, Sider} = Layout
@@ -61,8 +62,9 @@ export default class extends React.Component {
                 <Content>
                     <Routes>
                         <Route path="/connect" element={<Connect/>}/>
+                        <Route path="/transfer/:id" element={<Transfer/>}/>
                         <Route path="/terminal/:id" element={<Terminal/>}/>
-                        <Route path="*"element={<Connect/>}/>
+                        <Route path="*" element={<Connect/>}/>
                     </Routes>
                 </Content>
             </Layout>

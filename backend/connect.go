@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -17,6 +19,7 @@ import (
 	"github.com/o8x/acorn/backend/database"
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/utils"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"github.com/widaT/webssh"
 )
 
@@ -76,7 +79,7 @@ type ConnectItem struct {
 
 func (c *Connect) SSHConnect(id int) *response.Response {
 	var p ConnectItem
-	if err := c.getInfoByID(id, &p); err != nil {
+	if err := GetInfoByID(id, &p); err != nil {
 		return response.Error(err)
 	}
 
@@ -98,7 +101,7 @@ func (c *Connect) SSHConnect(id int) *response.Response {
 
 func (c *Connect) PingConnect(id int) *response.Response {
 	var p ConnectItem
-	if err := c.getInfoByID(id, &p); err != nil {
+	if err := GetInfoByID(id, &p); err != nil {
 		return response.Error(err)
 	}
 
@@ -120,9 +123,73 @@ func (c *Connect) PingConnect(id int) *response.Response {
 	return response.NoContent()
 }
 
+func (c *Connect) SCPDownload(ctx context.Context, id int, file string) *response.Response {
+	var p ConnectItem
+	if err := GetInfoByID(id, &p); err != nil {
+		return response.Error(err)
+	}
+
+	dir, err := runtime.OpenDirectoryDialog(ctx, runtime.OpenDialogOptions{
+		DefaultDirectory:     filepath.Join(os.Getenv("HOME"), "/Downloads"),
+		Title:                "选择下载目录",
+		ShowHiddenFiles:      true,
+		CanCreateDirectories: true,
+		ResolvesAliases:      true,
+	})
+	if dir = strings.TrimSpace(dir); dir == "" || err != nil {
+		return response.Error(fmt.Errorf("所选目录无效 %v", err))
+	}
+
+	script, err := c.MakeSCPDownloadCommand(file, dir, p)
+	if err != nil {
+		return response.Error(err)
+	}
+
+	if err = exec.Command("osascript", script).Start(); err != nil {
+		return response.Error(err)
+	}
+
+	if err := c.updateLastUseTime(id); err != nil {
+		return response.Error(err)
+	}
+
+	return response.NoContent()
+}
+
+func (c *Connect) SCPUpload(ctx context.Context, id int, dir string) *response.Response {
+	var p ConnectItem
+	if err := GetInfoByID(id, &p); err != nil {
+		return response.Error(err)
+	}
+
+	sFile, err := runtime.OpenFileDialog(ctx, runtime.OpenDialogOptions{
+		Title:                "选择需要上传的文件",
+		ShowHiddenFiles:      true,
+		CanCreateDirectories: true,
+	})
+	if err != nil {
+		return response.Error(err)
+	}
+
+	script, err := c.MakeSCPUploadCommand(sFile, dir, p)
+	if err != nil {
+		return response.Error(err)
+	}
+
+	if err = exec.Command("osascript", script).Start(); err != nil {
+		return response.Error(err)
+	}
+
+	if err := c.updateLastUseTime(id); err != nil {
+		return response.Error(err)
+	}
+
+	return response.NoContent()
+}
+
 func (c *Connect) EditConnect(item ConnectItem) error {
 	var p ConnectItem
-	if err := c.getInfoByID(item.ID, &p); err != nil {
+	if err := GetInfoByID(item.ID, &p); err != nil {
 		return err
 	}
 
@@ -141,7 +208,7 @@ func (c *Connect) EditConnect(item ConnectItem) error {
 
 func (c *Connect) SSHCopyID(id int) *response.Response {
 	var p ConnectItem
-	if err := c.getInfoByID(id, &p); err != nil {
+	if err := GetInfoByID(id, &p); err != nil {
 		return response.Error(err)
 	}
 
@@ -161,7 +228,7 @@ func (c *Connect) SSHCopyID(id int) *response.Response {
 	return response.NoContent()
 }
 
-func (c *Connect) getInfoByID(id int, p *ConnectItem) error {
+func GetInfoByID(id int, p *ConnectItem) error {
 	return database.Get().QueryRow("select * from connect where id = ? limit 1", id).
 		Scan(&p.ID, &p.Type, &p.Label, &p.UserName, &p.Password, &p.Port, &p.Host, &p.PrivateKey, &p.Params, &p.AuthType, &p.LastUseTime, &p.CreateTime)
 }
@@ -176,6 +243,26 @@ func (c *Connect) updateLastUseTime(id int) error {
 }
 
 func (c *Connect) makeSSHScript(command string, p ConnectItem) (string, error) {
+	cmdline := fmt.Sprintf(`%s {params} -p %d %s@%s`, command, p.Port, p.UserName, p.Host)
+	return c.CreateScript(cmdline, p)
+}
+
+func (c *Connect) MakeSCPDownloadCommand(from, to string, p ConnectItem) (string, error) {
+	from, err := filepath.Abs(from)
+	if err != nil {
+		return "", err
+	}
+
+	cmdline := fmt.Sprintf(`scp -r {params} -P %d '%s@%s:%s' '%s'`, p.Port, p.UserName, p.Host, from, to)
+	return c.CreateScript(cmdline, p)
+}
+
+func (c *Connect) MakeSCPUploadCommand(from, to string, p ConnectItem) (string, error) {
+	cmdline := fmt.Sprintf(`scp -r {params} -P %d '%s' '%s@%s:%s'`, p.Port, from, p.UserName, p.Host, to)
+	return c.CreateScript(cmdline, p)
+}
+
+func (c *Connect) CreateScript(cmdline string, p ConnectItem) (string, error) {
 	script := string(iterm2Script)
 
 	if p.AuthType == "private_key" {
@@ -191,7 +278,7 @@ func (c *Connect) makeSSHScript(command string, p ConnectItem) (string, error) {
 		p.Params = strings.Join([]string{p.Params, "-i", defaultKeyfile}, " ")
 	}
 
-	cmdline := fmt.Sprintf(`%s %s -p %d %s@%s`, command, p.Params, p.Port, p.UserName, p.Host)
+	cmdline = strings.ReplaceAll(cmdline, "{params}", p.Params)
 	script = strings.ReplaceAll(script, "{password}", p.Password)
 	script = strings.ReplaceAll(script, "{commands}", cmdline)
 
@@ -213,7 +300,7 @@ func (c *Connect) ServeXtermListen(writer http.ResponseWriter, request *http.Req
 	cID, _ := strconv.ParseInt(id, 10, 32)
 
 	var it ConnectItem
-	if err = c.getInfoByID(int(cID), &it); err != nil {
+	if err = GetInfoByID(int(cID), &it); err != nil {
 		return
 	}
 
