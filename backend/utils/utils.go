@@ -31,3 +31,8 @@ func GenerateSSHPrivateKey(content string) (string, error) {
 
 	return f.Name(), exec.Command("chmod", "600", f.Name()).Run()
 }
+
+func UnsafeFileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}

@@ -2,11 +2,18 @@ package database
 
 import (
 	"database/sql"
+	_ "embed"
+	"os"
+	"path/filepath"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var ins *sql.DB
+var (
+	//go:embed ddl.sql
+	ddl string
+	ins *sql.DB
+)
 
 func Get() *sql.DB {
 	return ins
@@ -52,4 +59,21 @@ func Init(filename string) error {
 
 	ins = db
 	return nil
+}
+
+func AutoCreateDB(file string) error {
+	if err := os.MkdirAll(filepath.Dir(file), 0755); err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(file, []byte(""), 0755); err != nil {
+		return err
+	}
+
+	if err := Init(file); err != nil {
+		return err
+	}
+
+	_, err := Get().Exec(ddl)
+	return err
 }
