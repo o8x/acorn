@@ -190,6 +190,6 @@ func (c *App) Startup(ctx context.Context) {
 
 	go func() {
 		http.HandleFunc("/ws", c.connect.ServeXtermListen)
-		_ = http.ListenAndServe(":30001", nil)
+		_ = http.ListenAndServe("127.0.0.1:30001", nil)
 	}()
 }
