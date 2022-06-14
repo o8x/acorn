@@ -1,9 +1,8 @@
 import React from "react"
-import {Avatar, Button, Divider, Form, Input, List, message, Modal, Radio, Select} from "antd"
+import {Avatar, Button, Col, Divider, Form, Input, message, Modal, Radio, Row, Select, Space, Table} from "antd"
 import Container from "./Container"
 import "./Connect.css"
 import CustomModal from "../Components/Modal"
-import {EditOutlined} from "@ant-design/icons"
 import {Option} from "antd/es/mentions"
 import {Link} from "react-router-dom"
 
@@ -13,6 +12,7 @@ import linuxLogo from "../assets/images/linux-logo.png"
 import openwrtLogo from "../assets/images/openwrt-logo.png"
 import ubuntuLogo from "../assets/images/ubuntu-logo.png"
 import windowsLogo from "../assets/images/windows-logo.png"
+import {EditOutlined} from "@ant-design/icons"
 
 function getLogoSrc(type) {
     switch (type.toLowerCase()) {
@@ -110,53 +110,51 @@ export default class extends React.Component {
         let editRef = React.createRef()
 
         Modal.confirm({
-            style: {top: 30}, title: "修改连接信息", okText: "确定", cancelText: "取消", width: 600, content: (
-                <Form
-                    ref={editRef}
-                    labelCol={{span: 4}}
-                    layout="horizontal"
-                    size="default"
-                    initialValues={item}
-                >
-                    <Divider/>
-                    <Form.Item label="操作系统" name="type">
-                        <Select placeholder="操作系统">
-                            <Option value="linux">Linux</Option>
-                            <Option value="centos">CentOS</Option>
-                            <Option value="ubuntu">Ubuntu</Option>
-                            <Option value="debian">Debian</Option>
-                            <Option value="openwrt">OpenWRT</Option>
-                            <Option value="windows">Windows</Option>
-                        </Select>
+            style: {top: 30}, title: "修改连接信息", okText: "确定", cancelText: "取消", width: 600, content: (<Form
+                ref={editRef}
+                labelCol={{span: 4}}
+                layout="horizontal"
+                size="default"
+                initialValues={item}
+            >
+                <Divider/>
+                <Form.Item label="操作系统" name="type">
+                    <Select placeholder="操作系统">
+                        <Option value="linux">Linux</Option>
+                        <Option value="centos">CentOS</Option>
+                        <Option value="ubuntu">Ubuntu</Option>
+                        <Option value="debian">Debian</Option>
+                        <Option value="openwrt">OpenWRT</Option>
+                        <Option value="windows">Windows</Option>
+                    </Select>
+                </Form.Item>
+                <Form.Item label="鉴权类型" name="auth_type">
+                    <Radio.Group>
+                        <Radio.Button value="password">密码</Radio.Button>
+                        <Radio.Button value="private_key">私钥</Radio.Button>
+                    </Radio.Group>
+                </Form.Item>
+                <Form.Item label="私钥" name="private_key"><Input/></Form.Item>
+                <Form.Item label="认证" style={{marginBottom: 0}}>
+                    <Form.Item style={{display: "inline-block", width: "calc(50% - 5px)"}} name="username">
+                        <Input placeholder="用户名"/>
                     </Form.Item>
-                    <Form.Item label="鉴权类型" name="auth_type">
-                        <Radio.Group>
-                            <Radio.Button value="password">密码</Radio.Button>
-                            <Radio.Button value="private_key">私钥</Radio.Button>
-                        </Radio.Group>
+                    <Form.Item style={{display: "inline-block", width: "calc(50% - 5px)", marginLeft: 10}}
+                               name="password">
+                        <Input.Password placeholder="密码"/>
                     </Form.Item>
-                    <Form.Item label="私钥" name="private_key"><Input/></Form.Item>
-                    <Form.Item label="认证" style={{marginBottom: 0}}>
-                        <Form.Item style={{display: "inline-block", width: "calc(50% - 5px)"}} name="username">
-                            <Input placeholder="用户名"/>
-                        </Form.Item>
-                        <Form.Item style={{display: "inline-block", width: "calc(50% - 5px)", marginLeft: 10}}
-                                   name="password">
-                            <Input.Password placeholder="密码"/>
-                        </Form.Item>
+                </Form.Item>
+                <Form.Item label="连接" style={{marginBottom: 0}}>
+                    <Form.Item style={{display: "inline-block", width: "calc(50% - 5px)"}} name="host">
+                        <Input placeholder="地址"/>
                     </Form.Item>
-                    <Form.Item label="连接" style={{marginBottom: 0}}>
-                        <Form.Item style={{display: "inline-block", width: "calc(50% - 5px)"}} name="host">
-                            <Input placeholder="地址"/>
-                        </Form.Item>
-                        <Form.Item style={{display: "inline-block", width: "calc(50% - 5px)", marginLeft: 10}}
-                                   name="port">
-                            <Input placeholder="端口"/>
-                        </Form.Item>
+                    <Form.Item style={{display: "inline-block", width: "calc(50% - 5px)", marginLeft: 10}}
+                               name="port">
+                        <Input placeholder="端口"/>
                     </Form.Item>
-                    <Form.Item label="连接参数" name="params"><Input/></Form.Item>
-                </Form>
-            ), icon: null, onOk: () => {
+                </Form.Item>
+                <Form.Item label="连接参数" name="params"><Input/></Form.Item>
+            </Form>), icon: null, onOk: () => {
                 let values = editRef.current.getFieldsValue(true)
                 values.port = parseInt(values.port)
 
@@ -269,6 +267,40 @@ export default class extends React.Component {
         })
     }
 
+    columns = [
+        {
+            render: (_, item) => {
+                return <Row>
+                    <Col>
+                        <Avatar size={30} src={getLogoSrc(item.type)} style={{
+                            marginRight: "10px",
+                        }}/></Col>
+                    <Col>
+                        <span className="ssh-command" key={Math.random()}>
+                            <a href="#" onDoubleClick={() => this.SSHConnect(item)}>{item.label}</a>
+                            <a href="#" onClick={() => this.editConnectLabel(item)}><EditOutlined/></a>
+                            <br/>
+                            {`ssh ${item.port === "22" ? "" : `-p ${item.port}`} ${item.username}@${item.host}`}
+                        </span>
+                    </Col>
+                </Row>
+            },
+        },
+        {
+            render: (_, item) => (<Space size="middle">
+                <a key="list-conn" onClick={() => this.SSHConnect(item)}>连接</a>
+                {
+                    item.params.indexOf("ProxyCommand") === -1 ?
+                        <Link to={`/transfer/${item.id}`}>传输</Link> :
+                        <a href="#" onClick={() => message.error("节点无法直达，不支持该功能")}>传输</a>
+                }
+                <a key="list-copy-id" onClick={() => this.SSHCopyID(item)}>COPY-ID</a>
+                <a key="list-ping" onClick={() => this.ping(item)}>PING</a>
+                <a key="list-edit" onClick={() => this.editConnect(item)}>编辑</a>
+                <a key="list-more" onClick={() => this.deleteSSHConnect(item)}>删除</a>
+            </Space>),
+        }]
+
     render() {
         return <Container>
             <Form onFinish={this.AddSSHConnect}>
@@ -281,32 +313,18 @@ export default class extends React.Component {
                     <Button type="primary" htmlType="submit">快速添加</Button>
                 </Input.Group>
             </Form>
-            <Divider/>
-            <List
-                itemLayout="horizontal"
+            <Table
+                columns={this.columns}
                 dataSource={this.state.list}
-                renderItem={item => (<List.Item
-                    actions={[<a key="list-edit" onClick={() => message.info("尚未实现")}>监控</a>,
-                        <a key="list-conn" onClick={() => this.SSHConnect(item)}>连接</a>,
-                        <a key="list-xterm">
-                            <Link to={`/terminal/${item.id}`}>xTerm</Link>
-                        </a>,
-                        <a key="list-xterm">
-                            <Link to={`/transfer/${item.id}`}>传输</Link>
-                        </a>,
-                        <a key="list-copy-id" onClick={() => this.SSHCopyID(item)}>COPY-ID</a>,
-                        <a key="list-edit" onClick={() => this.ping(item)}>PING</a>,
-                        <a key="list-edit" onClick={() => this.editConnect(item)}>编辑</a>,
-                        <a key="list-more" onClick={() => this.deleteSSHConnect(item)}>删除</a>]}>
-                    <List.Item.Meta
-                        avatar={<Avatar src={getLogoSrc(item.type)}/>}
-                        title={<span className="title" onDoubleClick={() => this.SSHConnect(item)}>
-                                {item.label === "" ? "未命名" : item.label} ({item.username}@{item.host})
-                                <a href="#" onClick={() => this.editConnectLabel(item)}><EditOutlined/></a>
-                            </span>}
-                        description={`ssh ${item.params} ${item.port === "22" ? "" : `-p ${item.port}`} ${item.username}@${item.host}`}
-                    />
-                </List.Item>)}
+                showHeader={false}
+                scroll={{x: 790, y: 440}}
+                rowKey={it => it.id}
+                expandable={{
+                    expandedRowRender: item => <p key={item.id * 100} style={{margin: 0}}>
+                        {`ssh ${item.params} ${item.port === "22" ? "" : `-p ${item.port}`} ${item.username}@${item.host}`}
+                    </p>,
+                    rowExpandable: item => item.params !== "",
+                }}
             />
             <CustomModal ref={this.modalRef}/>
         </Container>
