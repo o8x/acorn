@@ -27,7 +27,7 @@ export default function () {
         }
     }, [codeString])
 
-    return <Container>
+    return <Container  title="JSON格式化" subTitle="高亮和格式化标准 json 数据">
         <Row gutter={24} className="json-formater">
             <Col span={11}>
                 <TextArea value={codeString} onChange={e => setCodeString(e.target.value)} placeholder="原始JSON文本"/>

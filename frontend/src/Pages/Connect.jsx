@@ -302,7 +302,7 @@ export default class extends React.Component {
         }]
 
     render() {
-        return <Container>
+        return <Container title="远程连接" subTitle="快速连接SSH和进行双向文件传输">
             <Form onFinish={this.AddSSHConnect}>
                 <Input.Group compact>
                     <Input value={this.state.quickAddInput}
@@ -314,6 +314,9 @@ export default class extends React.Component {
                 </Input.Group>
             </Form>
             <Table
+                style={{
+                    marginTop: 10,
+                }}
                 columns={this.columns}
                 dataSource={this.state.list}
                 showHeader={false}
@@ -324,6 +327,12 @@ export default class extends React.Component {
                         {`ssh ${item.params} ${item.port === "22" ? "" : `-p ${item.port}`} ${item.username}@${item.host}`}
                     </p>,
                     rowExpandable: item => item.params !== "",
+                }}
+                pagination={{
+                    pageSize: 6,
+                    hideOnSinglePage: true,
+                    total: this.state.list.length,
+                    showTotal: total => `共${total}条`,
                 }}
             />
             <CustomModal ref={this.modalRef}/>

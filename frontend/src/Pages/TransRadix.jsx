@@ -32,7 +32,7 @@ export default function () {
         </Select>
     }
 
-    return <Container>
+    return <Container  title="进制转换" subTitle="在 2-36 进制之间实时转换">
         <Form
             labelCol={{span: 4}}
             wrapperCol={{span: 15}}

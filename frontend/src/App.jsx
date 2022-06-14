@@ -1,5 +1,5 @@
 import React from "react"
-import {Layout, Menu, PageHeader, Typography} from "antd"
+import {Layout, Menu, Typography} from "antd"
 import {Link, Route, Routes} from "react-router-dom"
 
 import {ApartmentOutlined, FileSyncOutlined, ToolOutlined} from "@ant-design/icons"
@@ -57,14 +57,6 @@ export default class extends React.Component {
                 </Menu>
             </Sider>
             <Layout className="site-layout">
-                <div data-wails-drag>
-                    <PageHeader
-                        className="site-page-header"
-                        title="CONNECT"
-                        subTitle="快速连接 SSH"
-                    />
-                </div>
-
                 <Content>
                     <Routes>
                         <Route path="/connect" element={<Connect/>}/>
