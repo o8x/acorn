@@ -1,0 +1,12 @@
+.json-formater .ant-input {
+    height: 100% !important;
+}
+
+.json-formater .syntax-highlighter {
+    height: 100%;
+}
+
+.json-formater {
+    height: calc(100vh - 72px - 36px) !important;
+    overflow: scroll;
+}

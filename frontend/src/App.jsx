@@ -8,6 +8,7 @@ import Connect from "./Pages/Connect"
 import Terminal from "./Pages/Terminal"
 import Transfer from "./Pages/Transfer"
 import TransRadix from "./Pages/TransRadix"
+import JsonFormat from "./Pages/JsonFormat"
 
 const {Title} = Typography
 const {Content, Sider} = Layout
@@ -42,7 +43,9 @@ export default class extends React.Component {
                         <Link to="/transfer">文件传输</Link>
                     </Menu.Item>
                     <Menu.SubMenu title="工具" key="2" icon={<ToolOutlined/>}>
-                        <Menu.Item key="2_1">JSON美化</Menu.Item>,
+                        <Menu.Item key="2_1">
+                            <Link to="/tools/json">JSON美化</Link>
+                        </Menu.Item>,
                         <Menu.Item key="2_2">
                             <Link to="/tools/radix">进制转换</Link>
                         </Menu.Item>,
@@ -68,6 +71,7 @@ export default class extends React.Component {
                         <Route path="/transfer/:id" element={<Transfer/>}/>
                         <Route path="/terminal/:id" element={<Terminal/>}/>
                         <Route path="/tools/radix" element={<TransRadix/>}/>
+                        <Route path="/tools/json" element={<JsonFormat/>}/>
                         <Route path="*" element={<Connect/>}/>
                     </Routes>
                 </Content>
