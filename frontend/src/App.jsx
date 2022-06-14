@@ -7,6 +7,7 @@ import "./App.css"
 import Connect from "./Pages/Connect"
 import Terminal from "./Pages/Terminal"
 import Transfer from "./Pages/Transfer"
+import TransRadix from "./Pages/TransRadix"
 
 const {Title} = Typography
 const {Content, Sider} = Layout
@@ -42,7 +43,9 @@ export default class extends React.Component {
                     </Menu.Item>
                     <Menu.SubMenu title="工具" key="2" icon={<ToolOutlined/>}>
                         <Menu.Item key="2_1">JSON美化</Menu.Item>,
-                        <Menu.Item key="2_2">进制转换</Menu.Item>,
+                        <Menu.Item key="2_2">
+                            <Link to="/tools/radix">进制转换</Link>
+                        </Menu.Item>,
                         <Menu.Item key="2_3">正则表达式测试</Menu.Item>,
                         <Menu.Item key="2_4">文本编解码</Menu.Item>,
                         <Menu.Item key="2_5">短链接生成</Menu.Item>,
@@ -64,6 +67,7 @@ export default class extends React.Component {
                         <Route path="/connect" element={<Connect/>}/>
                         <Route path="/transfer/:id" element={<Transfer/>}/>
                         <Route path="/terminal/:id" element={<Terminal/>}/>
+                        <Route path="/tools/radix" element={<TransRadix/>}/>
                         <Route path="*" element={<Connect/>}/>
                     </Routes>
                 </Content>
