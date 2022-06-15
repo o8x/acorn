@@ -291,7 +291,7 @@ export default class extends React.Component {
                 <a key="list-conn" onClick={() => this.SSHConnect(item)}>连接</a>
                 {
                     item.params.indexOf("ProxyCommand") === -1 ?
-                        <Link to={`/transfer/${item.id}`}>传输</Link> :
+                        <Link to={`/transfer/${btoa(encodeURIComponent(JSON.stringify(item)))}`}>传输</Link> :
                         <a href="#" onClick={() => message.error("节点无法直达，不支持该功能")}>传输</a>
                 }
                 <a key="list-copy-id" onClick={() => this.SSHCopyID(item)}>COPY-ID</a>

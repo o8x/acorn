@@ -5,7 +5,10 @@ import {Button, message, Space, Table} from "antd"
 import {useParams} from "react-router-dom"
 
 export default function () {
-    const {id} = useParams()
+    const {id: args} = useParams()
+    let {id, label, username, host} = JSON.parse(decodeURIComponent(atob(args)))
+    id = String(id)
+
     let [list, setList] = useState([])
     let [wd, setWD] = useState("/")
     let [pn, setPN] = useState(1)
@@ -81,7 +84,7 @@ export default function () {
         listDir("")
     }, [])
 
-    return <Container>
+    return <Container title={label} subTitle={`${username}@${host}:${wd}`}>
         <Button type="primary" onClick={uploadFile}>上传文件到：{wd}</Button>
         <Table className="file-table" columns={columns} dataSource={list}
                scroll={{x: 1000, y: 405}}
