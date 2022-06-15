@@ -9,6 +9,7 @@ import Terminal from "./Pages/Terminal"
 import Transfer from "./Pages/Transfer"
 import TransRadix from "./Pages/TransRadix"
 import JsonFormat from "./Pages/JsonFormat"
+import RegTest from "./Pages/RegTest"
 
 const {Title} = Typography
 const {Content, Sider} = Layout
@@ -49,7 +50,9 @@ export default class extends React.Component {
                         <Menu.Item key="2_2">
                             <Link to="/tools/radix">进制转换</Link>
                         </Menu.Item>,
-                        <Menu.Item key="2_3">正则表达式测试</Menu.Item>,
+                        <Menu.Item key="2_3">
+                            <Link to="/tools/regtest">正则测试</Link>
+                        </Menu.Item>,
                         <Menu.Item key="2_4">文本编解码</Menu.Item>,
                         <Menu.Item key="2_5">短链接生成</Menu.Item>,
                         <Menu.Item key="2_6">二维码解析与生成</Menu.Item>,
@@ -64,6 +67,7 @@ export default class extends React.Component {
                         <Route path="/terminal/:id" element={<Terminal/>}/>
                         <Route path="/tools/radix" element={<TransRadix/>}/>
                         <Route path="/tools/json" element={<JsonFormat/>}/>
+                        <Route path="/tools/regtest" element={<RegTest/>}/>
                         <Route path="*" element={<Connect/>}/>
                     </Routes>
                 </Content>
