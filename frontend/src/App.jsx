@@ -38,7 +38,7 @@ export default class extends React.Component {
                 </div>
                 <Menu theme="dark" defaultSelectedKeys={this.state.selected} mode="inline">
                     <Menu.Item key="0" icon={<ApartmentOutlined/>}>
-                        <Link to="/connect">连接</Link>
+                        <Link to="/">连接</Link>
                     </Menu.Item>
                     <Menu.Item key="1" icon={<FileSyncOutlined/>}>
                         <Link to="/transfer">文件传输</Link>
@@ -62,7 +62,7 @@ export default class extends React.Component {
             <Layout className="site-layout">
                 <Content>
                     <Routes>
-                        <Route path="/connect" element={<Connect/>}/>
+                        <Route path="/" element={<Connect/>}/>
                         <Route path="/transfer/:id" element={<Transfer/>}/>
                         <Route path="/terminal/:id" element={<Terminal/>}/>
                         <Route path="/tools/radix" element={<TransRadix/>}/>
