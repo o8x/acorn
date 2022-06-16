@@ -41,24 +41,19 @@ export default class extends React.Component {
                     <Menu.Item key="0" icon={<ApartmentOutlined/>}>
                         <Link to="/">连接</Link>
                     </Menu.Item>
-                    <Menu.Item key="1" icon={<FileSyncOutlined/>}>
-                        <Link to="/transfer">文件传输</Link>
-                    </Menu.Item>
                     <Menu.SubMenu title="工具" key="2" icon={<ToolOutlined/>}>
                         <Menu.Item key="2_1">
                             <Link to="/tools/json">JSON美化</Link>
-                        </Menu.Item>,
+                        </Menu.Item>
                         <Menu.Item key="2_2">
                             <Link to="/tools/radix">进制转换</Link>
-                        </Menu.Item>,
+                        </Menu.Item>
                         <Menu.Item key="2_3">
                             <Link to="/tools/regtest">正则测试</Link>
-                        </Menu.Item>,
+                        </Menu.Item>
                         <Menu.Item key="2_4">
                             <Link to="/tools/textcodec">文本编解码</Link>
-                        </Menu.Item>,
-                        <Menu.Item key="2_5">短链接生成</Menu.Item>,
-                        <Menu.Item key="2_6">二维码解析与生成</Menu.Item>,
+                        </Menu.Item>
                     </Menu.SubMenu>
                 </Menu>
             </Sider>
