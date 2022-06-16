@@ -32,6 +32,7 @@ func main() {
 	conn := backend.NewConnect()
 	app := backend.NewApp()
 	transfer := controller.NewTransfer()
+	tools := controller.NewTools()
 
 	err := wails.Run(&options.App{
 		Title:         "",
@@ -66,6 +67,7 @@ func main() {
 		Bind: []interface{}{
 			conn,
 			transfer,
+			tools,
 		},
 		Mac: &mac.Options{
 			TitleBar: &mac.TitleBar{

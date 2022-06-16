@@ -10,6 +10,7 @@ import Transfer from "./Pages/Transfer"
 import TransRadix from "./Pages/TransRadix"
 import JsonFormat from "./Pages/JsonFormat"
 import RegTest from "./Pages/RegTest"
+import TextCodec from "./Pages/TextCodec"
 
 const {Title} = Typography
 const {Content, Sider} = Layout
@@ -53,7 +54,9 @@ export default class extends React.Component {
                         <Menu.Item key="2_3">
                             <Link to="/tools/regtest">正则测试</Link>
                         </Menu.Item>,
-                        <Menu.Item key="2_4">文本编解码</Menu.Item>,
+                        <Menu.Item key="2_4">
+                            <Link to="/tools/textcodec">文本编解码</Link>
+                        </Menu.Item>,
                         <Menu.Item key="2_5">短链接生成</Menu.Item>,
                         <Menu.Item key="2_6">二维码解析与生成</Menu.Item>,
                     </Menu.SubMenu>
@@ -68,6 +71,7 @@ export default class extends React.Component {
                         <Route path="/tools/radix" element={<TransRadix/>}/>
                         <Route path="/tools/json" element={<JsonFormat/>}/>
                         <Route path="/tools/regtest" element={<RegTest/>}/>
+                        <Route path="/tools/textcodec" element={<TextCodec/>}/>
                         <Route path="*" element={<Connect/>}/>
                     </Routes>
                 </Content>
