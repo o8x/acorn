@@ -2,7 +2,7 @@ import React from "react"
 import {Layout, Menu, Typography} from "antd"
 import {Link, Route, Routes} from "react-router-dom"
 
-import {ApartmentOutlined, FileSyncOutlined, ToolOutlined} from "@ant-design/icons"
+import {ApartmentOutlined, ToolOutlined} from "@ant-design/icons"
 import "./App.css"
 import Connect from "./Pages/Connect"
 import Terminal from "./Pages/Terminal"
@@ -11,13 +11,15 @@ import TransRadix from "./Pages/TransRadix"
 import JsonFormat from "./Pages/JsonFormat"
 import RegTest from "./Pages/RegTest"
 import TextCodec from "./Pages/TextCodec"
+import MakePassword from "./Pages/MakePassword"
 
 const {Title} = Typography
 const {Content, Sider} = Layout
 
 export default class extends React.Component {
     state = {
-        collapsed: false, selected: "connect",
+        collapsed: false,
+        selected: "0",
     }
 
     onCollapse = (collapsed) => {
@@ -54,6 +56,9 @@ export default class extends React.Component {
                         <Menu.Item key="2_4">
                             <Link to="/tools/textcodec">文本编解码</Link>
                         </Menu.Item>
+                        <Menu.Item key="2_5">
+                            <Link to="/tools/makepass">密码生成</Link>
+                        </Menu.Item>
                     </Menu.SubMenu>
                 </Menu>
             </Sider>
@@ -67,6 +72,7 @@ export default class extends React.Component {
                         <Route path="/tools/json" element={<JsonFormat/>}/>
                         <Route path="/tools/regtest" element={<RegTest/>}/>
                         <Route path="/tools/textcodec" element={<TextCodec/>}/>
+                        <Route path="/tools/makepass" element={<MakePassword/>}/>
                         <Route path="*" element={<Connect/>}/>
                     </Routes>
                 </Content>
