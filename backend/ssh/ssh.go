@@ -83,10 +83,17 @@ func (conn *Connection) Connect() error {
 	return err
 }
 
-func (conn *Connection) OpenSession() error {
+func (conn *Connection) OpenSession(retry bool) error {
 	s1, err := conn.client.NewSession()
 	if err != nil {
-		return err
+		if !retry {
+			return err
+		}
+
+		if err := conn.Connect(); err != nil {
+			return err
+		}
+		return conn.OpenSession(false)
 	}
 	conn.session = s1
 	return nil
