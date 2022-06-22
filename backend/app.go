@@ -159,7 +159,7 @@ func (c *App) Startup(ctx context.Context) {
 			return
 		}
 
-		if err := conn.OpenSession(); err != nil {
+		if err := conn.OpenSession(true); err != nil {
 			runtime.EventsEmit(ctx, "list_dir_reply", response.Error(err))
 			return
 		}
