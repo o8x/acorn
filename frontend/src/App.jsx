@@ -12,6 +12,7 @@ import JsonFormat from "./Pages/JsonFormat"
 import RegTest from "./Pages/RegTest"
 import TextCodec from "./Pages/TextCodec"
 import MakePassword from "./Pages/MakePassword"
+import Timestamp from "./Pages/Timestamp"
 
 const {Title} = Typography
 const {Content, Sider} = Layout
@@ -59,6 +60,9 @@ export default class extends React.Component {
                         <Menu.Item key="2_5">
                             <Link to="/tools/makepass">密码生成</Link>
                         </Menu.Item>
+                        <Menu.Item key="2_6">
+                            <Link to="/tools/timestamp">时间戳转换</Link>
+                        </Menu.Item>
                     </Menu.SubMenu>
                 </Menu>
             </Sider>
@@ -73,6 +77,7 @@ export default class extends React.Component {
                         <Route path="/tools/regtest" element={<RegTest/>}/>
                         <Route path="/tools/textcodec" element={<TextCodec/>}/>
                         <Route path="/tools/makepass" element={<MakePassword/>}/>
+                        <Route path="/tools/timestamp" element={<Timestamp/>}/>
                         <Route path="*" element={<Connect/>}/>
                     </Routes>
                 </Content>
