@@ -59,13 +59,13 @@ func (c *App) Startup(ctx context.Context) {
 	runtime.EventsOn(ctx, "add_connect", func(data ...interface{}) {
 		item := data[0].(map[string]interface{})
 
-		stmt, err := database.Get().Prepare(`insert into connect (type, label, username, port, host, params) values (?, ?, ?, ?, ?, ?)`)
+		stmt, err := database.Get().Prepare(`insert into connect (type, label, username, port, host, params, auth_type) values (?, ?, ?, ?, ?, ?, ?)`)
 		if err != nil {
 			runtime.EventsEmit(ctx, "add_connect_reply", response.Error(err))
 			return
 		}
 
-		if _, err := stmt.Exec(item["type"], item["label"], item["username"], item["port"], item["host"], item["params"]); err != nil {
+		if _, err := stmt.Exec(item["type"], item["label"], item["username"], item["port"], item["host"], item["params"], "private_key"); err != nil {
 			runtime.EventsEmit(ctx, "add_connect_reply", response.Error(err))
 			return
 		}
