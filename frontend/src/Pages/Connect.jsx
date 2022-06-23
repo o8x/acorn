@@ -30,9 +30,19 @@ function getLogoSrc(type) {
     return linuxLogo
 }
 
+const OSList = [
+    {value: "linux", text: "Linux"},
+    {value: "centos", text: "CentOS"},
+    {value: "ubuntu", text: "Ubuntu"},
+    {value: "debian", text: "Debian"},
+    {value: "openwrt", text: "OpenWRT"},
+    {value: "windows", text: "Windows"},
+]
+
 export default class extends React.Component {
     state = {
         list: [], quickAddInput: "", quickAddInputLoading: false,
+        pagesize: 6,
     }
 
     constructor(props) {
@@ -122,12 +132,7 @@ export default class extends React.Component {
                 <Divider/>
                 <Form.Item label="操作系统" name="type">
                     <Select placeholder="操作系统">
-                        <Option value="linux">Linux</Option>
-                        <Option value="centos">CentOS</Option>
-                        <Option value="ubuntu">Ubuntu</Option>
-                        <Option value="debian">Debian</Option>
-                        <Option value="openwrt">OpenWRT</Option>
-                        <Option value="windows">Windows</Option>
+                        {OSList.map(it => <Option value={it.value}>{it.text}</Option>)}
                     </Select>
                 </Form.Item>
                 <Form.Item label="鉴权类型" name="auth_type">
@@ -269,6 +274,7 @@ export default class extends React.Component {
 
     columns = [
         {
+            title: "连接信息",
             render: (_, item) => {
                 return <Row>
                     <Col>
@@ -287,6 +293,10 @@ export default class extends React.Component {
                     </Col>
                 </Row>
             },
+            filters: OSList,
+            filterSearch: true,
+            sorter: (a, b) => a.id - b.id,
+            onFilter: (value, record) => record.type === value,
         },
         {
             render: (_, item) => (<Space size="middle">
@@ -302,6 +312,16 @@ export default class extends React.Component {
                 <a key="list-more" onClick={() => this.deleteSSHConnect(item)}>删除</a>
             </Space>),
         }]
+
+    onTableChange = (pagination, filters, sorter, extra) => {
+        // 默认 filters 没有 1 属性
+        // 切换为空时 filters 的 1 属性为 null
+        if (Object.keys(filters).length === 2) {
+            this.setState({
+                pagesize: filters[1] !== null ? 999 : 6,
+            })
+        }
+    }
 
     render() {
         return <Container title="远程连接" subTitle="快速连接SSH和进行双向文件传输">
@@ -321,9 +341,11 @@ export default class extends React.Component {
                 }}
                 columns={this.columns}
                 dataSource={this.state.list}
-                showHeader={false}
-                scroll={{x: 790, y: 440}}
+                showHeader={true}
+                scroll={{x: 790, y: 400}}
                 rowKey={it => it.id}
+                onChange={this.onTableChange}
+                size="middle"
                 expandable={{
                     expandedRowRender: item => <p key={item.id * 100} style={{margin: 0}}>
                         {`ssh ${item.params} ${item.port === "22" ? "" : `-p ${item.port}`} ${item.username}@${item.host}`}
@@ -331,7 +353,7 @@ export default class extends React.Component {
                     rowExpandable: item => item.params !== "",
                 }}
                 pagination={{
-                    pageSize: 6,
+                    pageSize: this.state.pagesize,
                     hideOnSinglePage: true,
                     total: this.state.list.length,
                     showTotal: total => `共${total}条`,
