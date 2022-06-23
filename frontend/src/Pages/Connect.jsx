@@ -215,6 +215,18 @@ export default class extends React.Component {
             args.type = "linux"
         }
 
+        function splitHostPort(host) {
+            let link = host.split(":")
+            args.host = link[0]
+            args.port = parseInt(link[1])
+            const isNT = args.port === 3389
+
+            args.type = isNT ? "windows" : "linux"
+            args.username = isNT ? "Administrator" : "root"
+            args.params = isNT ? "" : args.params
+            args.auth_type = isNT ? "password" : args.params
+        }
+
         if (this.state.quickAddInput.trim() === "") {
             return message.warning("参数不能为空")
         }
@@ -223,6 +235,8 @@ export default class extends React.Component {
         if (params.length === 1) {
             if (params[0].indexOf("@") !== -1) {
                 splitHost(params[0])
+            } else if (params[0].indexOf(":") !== -1) {
+                splitHostPort(params[0])
             } else {
                 args.username = "root"
                 args.host = params[0]
@@ -299,18 +313,24 @@ export default class extends React.Component {
             onFilter: (value, record) => record.type === value,
         },
         {
-            render: (_, item) => (<Space size="middle">
-                <a key="list-conn" onClick={() => this.SSHConnect(item)}>连接</a>
-                {
-                    item.params.indexOf("ProxyCommand") === -1 ?
-                        <Link to={`/transfer/${btoa(encodeURIComponent(JSON.stringify(item)))}`}>传输</Link> :
-                        <a href="#" onClick={() => message.error("节点无法直达，不支持该功能")}>传输</a>
-                }
-                <a key="list-copy-id" onClick={() => this.SSHCopyID(item)}>COPY-ID</a>
-                <a key="list-ping" onClick={() => this.ping(item)}>PING</a>
-                <a key="list-edit" onClick={() => this.editConnect(item)}>编辑</a>
-                <a key="list-more" onClick={() => this.deleteSSHConnect(item)}>删除</a>
-            </Space>),
+            render: (_, item) => {
+                const isNT = item.type === "windows"
+                return (<Space size="middle">
+                    <a key="list-conn" onClick={() => this.SSHConnect(item)}>连接</a>
+                    {
+                        item.params.indexOf("ProxyCommand") !== -1 || isNT ?
+                            <a href="#" disabled>传输</a>:
+                            <Link to={`/transfer/${btoa(encodeURIComponent(JSON.stringify(item)))}`}>传输</Link>
+                    }
+                    {
+                        isNT ? <a disabled>COPY-ID</a>
+                            : <a key="list-copy-id" onClick={() => this.SSHCopyID(item)}>COPY-ID</a>
+                    }
+                    <a key="list-ping" onClick={() => this.ping(item)}>PING</a>
+                    <a key="list-edit" onClick={() => this.editConnect(item)}>编辑</a>
+                    <a key="list-more" onClick={() => this.deleteSSHConnect(item)}>删除</a>
+                </Space>)
+            },
         }]
 
     onTableChange = (pagination, filters, sorter, extra) => {

@@ -65,7 +65,7 @@ func (c *App) Startup(ctx context.Context) {
 			return
 		}
 
-		if _, err := stmt.Exec(item["type"], item["label"], item["username"], item["port"], item["host"], item["params"], "private_key"); err != nil {
+		if _, err := stmt.Exec(item["type"], item["label"], item["username"], item["port"], item["host"], item["params"], item["auth_type"]); err != nil {
 			runtime.EventsEmit(ctx, "add_connect_reply", response.Error(err))
 			return
 		}
