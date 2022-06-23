@@ -98,9 +98,7 @@ export default class extends React.Component {
                     }
 
                     message.success("备注修改完成")
-                    this.setState({
-                        list: this.state.list.map(it => it.id === item.id ? item : it),
-                    })
+                    this.loadList()
                 })
             },
         })
@@ -277,8 +275,10 @@ export default class extends React.Component {
                         }}/></Col>
                     <Col>
                         <span className="ssh-command" key={Math.random()}>
-                            <a href="#" onDoubleClick={() => this.SSHConnect(item)}>{item.label}</a>
-                            <a href="#" onClick={() => this.editConnectLabel(item)}><EditOutlined/></a>
+                            <a href="#" onDoubleClick={() => this.SSHConnect(item)}>
+                                {item.label === "" ? "未命名" : item.label}
+                            </a>
+                            <a href="#" onClick={() => this.editConnectLabel(item)}> <EditOutlined/> </a>
                             <br/>
                             {`ssh ${item.port === "22" ? "" : `-p ${item.port}`} ${item.username}@${item.host}`}
                         </span>
