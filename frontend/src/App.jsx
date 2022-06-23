@@ -5,7 +5,6 @@ import {Link, Route, Routes} from "react-router-dom"
 import {ApartmentOutlined, ToolOutlined} from "@ant-design/icons"
 import "./App.css"
 import Connect from "./Pages/Connect"
-import Terminal from "./Pages/Terminal"
 import Transfer from "./Pages/Transfer"
 import TransRadix from "./Pages/TransRadix"
 import JsonFormat from "./Pages/JsonFormat"
@@ -71,7 +70,6 @@ export default class extends React.Component {
                     <Routes>
                         <Route path="/" element={<Connect/>}/>
                         <Route path="/transfer/:id" element={<Transfer/>}/>
-                        <Route path="/terminal/:id" element={<Terminal/>}/>
                         <Route path="/tools/radix" element={<TransRadix/>}/>
                         <Route path="/tools/json" element={<JsonFormat/>}/>
                         <Route path="/tools/regtest" element={<RegTest/>}/>

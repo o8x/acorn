@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"strconv"
 	"strings"
 
@@ -187,9 +186,4 @@ func (c *App) Startup(ctx context.Context) {
 
 		runtime.EventsEmit(ctx, "upload_files_reply", response.NoContent())
 	})
-
-	go func() {
-		http.HandleFunc("/ws", c.connect.ServeXtermListen)
-		_ = http.ListenAndServe("127.0.0.1:30001", nil)
-	}()
 }

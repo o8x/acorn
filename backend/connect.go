@@ -1,59 +1,29 @@
 package backend
 
 import (
-	"bytes"
 	"context"
 	_ "embed"
 	"fmt"
-	"net"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
-	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"github.com/o8x/acorn/backend/database"
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/utils"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
-	"github.com/widaT/webssh"
 )
 
 //go:embed scripts/iterm2.applescript
 var iterm2Script []byte
-
-var bufPool = sync.Pool{
-	New: func() interface{} {
-		return new(bytes.Buffer)
-	},
-}
-
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024 * 10,
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
 
 type Connect struct {
 	ctx context.Context
 }
 
 func NewConnect() *Connect {
-	webssh.NewWebSSH(&webssh.WebSSHConfig{
-		Record:     false,
-		RemoteAddr: "stdout.com.cn",
-		User:       "root",
-		Password:   "",
-		AuthModel:  webssh.PUBLICKEY,
-		PkPath:     "~/.ssh/id_rsa",
-	})
-
 	return &Connect{}
 }
 
@@ -288,73 +258,4 @@ func (c *Connect) CreateScript(cmdline string, p ConnectItem) (string, error) {
 	}
 
 	return f.Name(), nil
-}
-
-func (c *Connect) ServeXtermListen(writer http.ResponseWriter, request *http.Request) {
-	wsConn, err := upgrader.Upgrade(writer, request, nil)
-	if err != nil {
-		return
-	}
-
-	id := request.URL.Query().Get("id")
-	cID, _ := strconv.ParseInt(id, 10, 32)
-
-	var it ConnectItem
-	if err = GetInfoByID(int(cID), &it); err != nil {
-		return
-	}
-
-	defer wsConn.Close()
-	var config = &webssh.SSHClientConfig{
-		Timeout:   time.Second * 5,
-		AuthModel: webssh.PUBLICKEY,
-		HostAddr:  net.JoinHostPort(it.Host, fmt.Sprintf("%d", it.Port)),
-		User:      it.UserName,
-		Password:  it.Password,
-		KeyPath:   `/Users/alex/.ssh/id_rsa`,
-	}
-
-	client, err := webssh.NewSSHClient(config)
-	if err != nil {
-		fmt.Println(err.Error())
-		wsConn.WriteControl(websocket.CloseMessage, []byte(err.Error()), time.Now().Add(time.Second))
-		return
-	}
-	defer client.Close()
-
-	turn, err := webssh.NewTurn(wsConn, client, nil)
-	if err != nil {
-		fmt.Println("turn", err.Error())
-		wsConn.WriteControl(websocket.CloseMessage, []byte(err.Error()), time.Now().Add(time.Second))
-		return
-	}
-	defer turn.Close()
-
-	// 更新最后使用时间
-	_ = c.updateLastUseTime(int(cID))
-
-	var logBuff = bufPool.Get().(*bytes.Buffer)
-	logBuff.Reset()
-	defer bufPool.Put(logBuff)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	wg := sync.WaitGroup{}
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		err := turn.LoopRead(logBuff, ctx)
-		if err != nil {
-			fmt.Println(err)
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		err := turn.SessionWait()
-		if err != nil {
-			fmt.Println(err)
-		}
-		cancel()
-	}()
-	wg.Wait()
 }
