@@ -98,6 +98,43 @@ func (c *App) Startup(ctx context.Context) {
 			return
 		}
 
+		if it.Type == "linux" {
+			getOsRelease := func(it ConnectItem) *ssh.OsRelease {
+				conn := ssh.New(ssh.Connection{
+					Host:       it.Host,
+					User:       it.UserName,
+					Port:       it.Port,
+					Password:   it.Password,
+					AuthMethod: it.AuthType,
+				})
+
+				if err := conn.Connect(); err != nil {
+					return nil
+				}
+
+				if err := conn.OpenSession(true); err != nil {
+					return nil
+				}
+
+				if info, err := ssh.ProberOSInfo(conn); err == nil {
+					return info
+				}
+
+				return nil
+			}
+
+			if r := getOsRelease(it); r != nil {
+				it.Type = r.ID
+				if it.Label == "" {
+					it.Label = r.PrettyName
+				}
+			}
+		}
+
+		if it.Label == "no label" {
+			it.Label = ""
+		}
+
 		if err = c.connect.EditConnect(it); err != nil {
 			runtime.EventsEmit(ctx, "edit_connect_reply", response.Error(err))
 			return

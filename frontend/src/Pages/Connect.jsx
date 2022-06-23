@@ -91,6 +91,10 @@ export default class extends React.Component {
                 }}
             />), icon: null, onOk: () => {
                 item.label = this.labelInputRef.current
+                if (item.label === "") {
+                    item.label = "no label"
+                }
+
                 window.runtime.EventsEmit("edit_connect", item)
                 window.runtime.EventsOnce("edit_connect_reply", data => {
                     if (data.status_code === 500) {
@@ -163,9 +167,7 @@ export default class extends React.Component {
                     }
 
                     message.success("连接信息修改完成")
-                    this.setState({
-                        list: this.state.list.map(it => it.id === values.id ? values : it),
-                    })
+                    this.loadList()
                 })
             },
         })
