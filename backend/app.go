@@ -155,7 +155,7 @@ func (c *App) Startup(ctx context.Context) {
 			keyword = fmt.Sprintf("where %s", strings.Join(wheres, " or "))
 		}
 
-		rows, err := database.Get().Query(fmt.Sprintf(`select * from connect %s order by last_use_timestamp desc, id desc`, keyword))
+		rows, err := database.Get().Query(fmt.Sprintf(`select * from connect %s order by last_use_timestamp = 0 desc, last_use_timestamp desc`, keyword))
 		if err != nil {
 			runtime.EventsEmit(ctx, "set_connects", response.Error(err))
 			return
