@@ -75,7 +75,7 @@ func (c *Connect) PingConnect(id int) *response.Response {
 		return response.Error(err)
 	}
 
-	script := strings.ReplaceAll(string(iterm2Script), "{commands}", fmt.Sprintf("ping %s", p.Host))
+	script := strings.ReplaceAll(string(iterm2Script), "{commands}", fmt.Sprintf("ping -c 10 %s", p.Host))
 
 	f, err := utils.WriteTempFileAutoClose(script)
 	if err != nil {
