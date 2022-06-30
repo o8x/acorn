@@ -1,8 +1,9 @@
 import React, {useEffect, useState} from "react"
 import Container from "./Container"
 import "./Transfer.css"
-import {Button, message, Space, Table} from "antd"
+import {Button, message, Space, Table, Tooltip} from "antd"
 import {useParams} from "react-router-dom"
+import {RedoOutlined, UploadOutlined} from "@ant-design/icons"
 
 export default function () {
     const {id: args} = useParams()
@@ -47,7 +48,7 @@ export default function () {
         window.runtime.EventsEmit("download_files", id, path)
         window.runtime.EventsOnce("download_files_reply", data => {
             if (data.status_code === 500) {
-                return message.error(`${path}下载失败: ${data.message}`)
+                return message.error(`下载失败: ${data.message}`)
             }
 
             message.success(`已开始下载：${path}`)
@@ -85,7 +86,14 @@ export default function () {
     }, [])
 
     return <Container title={label} subTitle={`${username}@${host}:${wd}`}>
-        <Button type="primary" onClick={uploadFile}>上传文件到：{wd}</Button>
+        <Space>
+            <Tooltip title="刷新当前目录" style={{marginLeft: 10}}>
+                <Button shape="circle" icon={<RedoOutlined/>}
+                        onClick={() => listDir(wd)}
+                />
+            </Tooltip>
+            <Button type="primary" onClick={uploadFile} icon={<UploadOutlined />}>上传文件到：{wd}</Button>
+        </Space>
         <Table className="file-table" columns={columns} dataSource={list}
                scroll={{x: 1000, y: 405}}
                size="small"
