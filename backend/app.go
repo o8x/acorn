@@ -219,8 +219,17 @@ func (c *App) Startup(ctx context.Context) {
 
 	runtime.EventsOn(ctx, "upload_files", func(data ...interface{}) {
 		id, _ := strconv.ParseInt(data[0].(string), 10, 32)
-		c.connect.SCPUpload(ctx, int(id), data[1].(string))
 
-		runtime.EventsEmit(ctx, "upload_files_reply", response.NoContent())
+		runtime.EventsEmit(ctx, "upload_files_reply",
+			c.connect.SCPUpload(ctx, int(id), data[1].(string)),
+		)
+	})
+
+	runtime.EventsOn(ctx, "cloud_download", func(data ...interface{}) {
+		id, _ := strconv.ParseInt(data[0].(string), 10, 32)
+
+		runtime.EventsEmit(ctx, "cloud_download_replay",
+			c.connect.CloudDownload(int(id), data[1].(string), data[2].(string)),
+		)
 	})
 }

@@ -34,6 +34,6 @@ tell application "iTerm"
         tell _session to write text "{password}" with newline
     end if
 
-    set auto_close to false
+    set auto_close to {auto_close}
     if auto_close then tell _session to close
 end tell

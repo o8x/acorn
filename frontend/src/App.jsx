@@ -22,7 +22,7 @@ export default class extends React.Component {
         selected: "0",
     }
 
-    onCollapse = (collapsed) => {
+    setCollapse = (collapsed) => {
         this.setState({
             collapsed,
         })
@@ -35,9 +35,9 @@ export default class extends React.Component {
                 minHeight: "100vh",
             }}
         >
-            <Sider collapsible collapsed={collapsed} onCollapse={this.onCollapse}>
+            <Sider collapsible collapsed={collapsed} onCollapse={this.setCollapse}>
                 <div className="logo" data-wails-drag>
-                    Acorn
+
                 </div>
                 <Menu theme="dark" defaultSelectedKeys={this.state.selected} mode="inline">
                     <Menu.Item key="0" icon={<ApartmentOutlined/>}>
@@ -69,13 +69,13 @@ export default class extends React.Component {
                 <Content>
                     <Routes>
                         <Route path="/" element={<Connect/>}/>
-                        <Route path="/transfer/:id" element={<Transfer/>}/>
-                        <Route path="/tools/radix" element={<TransRadix/>}/>
-                        <Route path="/tools/json" element={<JsonFormat/>}/>
-                        <Route path="/tools/regtest" element={<RegTest/>}/>
-                        <Route path="/tools/textcodec" element={<TextCodec/>}/>
-                        <Route path="/tools/makepass" element={<MakePassword/>}/>
-                        <Route path="/tools/timestamp" element={<Timestamp/>}/>
+                        <Route path="/transfer/:id" element={<Transfer setCollapse={this.setCollapse}/>}/>
+                        <Route path="/tools/radix" element={<TransRadix setCollapse={this.setCollapse}/>}/>}/>
+                        <Route path="/tools/json" element={<JsonFormat setCollapse={this.setCollapse}/>}/>}/>
+                        <Route path="/tools/regtest" element={<RegTest setCollapse={this.setCollapse}/>}/>}/>
+                        <Route path="/tools/textcodec" element={<TextCodec setCollapse={this.setCollapse}/>}/>}/>
+                        <Route path="/tools/makepass" element={<MakePassword setCollapse={this.setCollapse}/>}/>}/>
+                        <Route path="/tools/timestamp" element={<Timestamp setCollapse={this.setCollapse}/>}/>}/>
                         <Route path="*" element={<Connect/>}/>
                     </Routes>
                 </Content>

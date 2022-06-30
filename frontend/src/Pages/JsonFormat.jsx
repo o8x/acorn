@@ -7,7 +7,7 @@ import TextArea from "antd/es/input/TextArea"
 import "./JsonFormat.css"
 
 
-export default function () {
+export default function (props) {
     const [code, setCode] = useState("")
     const [codeString, setCodeString] = useState("")
 
@@ -26,6 +26,10 @@ export default function () {
             setCode(e.message)
         }
     }, [codeString])
+
+    useEffect(() => {
+        props.setCollapse(true)
+    }, [])
 
     return <Container  title="JSON格式化" subTitle="高亮和格式化标准 json 数据">
         <Row gutter={24} className="json-formater">

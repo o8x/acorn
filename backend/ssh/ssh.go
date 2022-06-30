@@ -39,6 +39,10 @@ func New(c Connection) *Connection {
 }
 
 func (conn *Connection) Close() error {
+	defer func() {
+		conn.client = nil
+	}()
+
 	connections.Remove(*conn)
 	return conn.client.Close()
 }
@@ -88,6 +92,11 @@ func (conn *Connection) OpenSession(retry bool) error {
 	if err != nil {
 		if !retry {
 			return err
+		}
+
+		// 注销连接再重建
+		if err := conn.Close(); err != nil {
+			fmt.Println(err)
 		}
 
 		if err := conn.Connect(); err != nil {

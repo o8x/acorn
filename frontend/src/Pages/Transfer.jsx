@@ -1,11 +1,17 @@
 import React, {useEffect, useState} from "react"
 import Container from "./Container"
 import "./Transfer.css"
-import {Button, message, Space, Table, Tooltip} from "antd"
+import {Button, Input, message, Modal, Space, Table, Tooltip} from "antd"
 import {useParams} from "react-router-dom"
-import {RedoOutlined, UploadOutlined} from "@ant-design/icons"
+import {
+    CloudDownloadOutlined,
+    CloudUploadOutlined,
+    HomeOutlined,
+    ReloadOutlined,
+    RollbackOutlined,
+} from "@ant-design/icons"
 
-export default function () {
+export default function (props) {
     const {id: args} = useParams()
     let {id, label, username, host} = JSON.parse(decodeURIComponent(atob(args)))
     id = String(id)
@@ -14,7 +20,8 @@ export default function () {
     let [wd, setWD] = useState("/")
     let [pn, setPN] = useState(1)
     let [tableLoading, setTableLoading] = useState(false)
-    let [pageSize, setPageSize] = useState(20)
+    let [pageSize, setPageSize] = useState(30)
+    let labelInputRef = React.createRef()
 
     function resolve(name) {
         const path = `${wd}${wd.substr(-1) !== "/" ? "/" : ""}${name}`
@@ -23,7 +30,10 @@ export default function () {
 
     async function listDir(dir) {
         setTableLoading(true)
-        dir = await resolve(dir)
+        // 绝对路径不再拼接处理
+        if (dir[0] !== "/") {
+            dir = await resolve(dir)
+        }
 
         window.runtime.EventsEmit("list_dir", id, dir)
         window.runtime.EventsOnce("list_dir_reply", data => {
@@ -34,9 +44,11 @@ export default function () {
 
             let body = JSON.parse(data.body)
             setWD(wd => {
+                // 文件夹排在最前面
+                body.list.sort((a, b) => b.isdir ? 1 : -1)
                 setList(body.list)
                 setPN(1)
-                setPageSize(20)
+                setPageSize(30)
 
                 return dir
             })
@@ -66,36 +78,110 @@ export default function () {
         })
     }
 
-    const columns = [{
-        title: "文件名", dataIndex: "name", key: Math.random(), render: (_, record) => {
-            if (record.isdir) {
-                return <a onClick={() => listDir(record.name)}>{record.name}</a>
-            }
-            return record.name
+    function cloudDownloadFile() {
+        Modal.confirm({
+            title: "云下载", okText: "确定", cancelText: "取消", content: (<Input
+                placeholder="下载连接"
+                onChange={({target: {value}}) => {
+                    labelInputRef.current = value
+                }}
+            />), icon: null, onOk: () => {
+                window.runtime.EventsEmit("cloud_download", id, wd, labelInputRef.current)
+                window.runtime.EventsOnce("cloud_download_reply", data => {
+                    if (data.status_code === 500) {
+                        return message.error("下载失败 " + data.message)
+                    }
+
+                    message.success("已开始下载")
+                })
+            },
+        })
+    }
+
+    const columns = [
+        {
+            title: "文件名", dataIndex: "name", key: Math.random(), width: 300,
+            render: (_, record) => {
+                if (record.isdir) {
+                    return <a onClick={() => listDir(record.name)}>{record.name}</a>
+                }
+                return record.name
+            },
         },
-    }, {
-        title: "体积", dataIndex: "size", key: "size",
-    }, {
-        title: "操作", key: "action", render: (_, record) => (<Space size="middle">
-            <a onClick={() => downloadFile(record)}>下载</a>
-        </Space>),
-    }]
+        {title: "权限", dataIndex: "mode", key: "mode", width: 100},
+        {
+            title: "体积", dataIndex: "size", key: "size", width: 100,
+            sorter: (a, b) => a.size - b.size,
+            render: (_, record) => {
+                if (record.name === "../") {
+                    return
+                }
+
+                const size = record.size
+                if (parseInt(size) === 0) {
+                    return "-"
+                }
+
+                if (size < 1000) {
+                    return size
+                }
+
+                if (size >= 1000 && size < 1000000) {
+                    return `${(size / 1000).toFixed(2)}KB`
+                }
+
+                if (size >= 1000000 && size < 1000000000) {
+                    return `${(size / 1000000).toFixed(2)}MB`
+                }
+
+                return `${(size / 1000000000).toFixed(2)}GB`
+            },
+        },
+        {title: "用户", dataIndex: "user", key: "user", width: 100},
+        {title: "修改时间", dataIndex: "mtime", key: "mtime"},
+        {
+            title: "操作", key: "action", render: (_, record) => {
+                if (record.name === "../") {
+                    return
+                }
+                return <Space size="middle">
+                    <a onClick={() => downloadFile(record)}>下载</a>
+                    <a onClick={() => message.info("暂未实现")}>删除</a>
+                </Space>
+            },
+        }]
 
     useEffect(() => {
         listDir("")
+        props.setCollapse(true)
     }, [])
 
     return <Container title={label} subTitle={`${username}@${host}:${wd}`}>
         <Space>
-            <Tooltip title="刷新当前目录" style={{marginLeft: 10}}>
-                <Button shape="circle" icon={<RedoOutlined/>}
+            <Tooltip title="返回上一级目录">
+                <Button shape="circle" icon={<RollbackOutlined/>} disabled={wd === "/" || tableLoading}
+                        onClick={() => listDir("../")}/>
+            </Tooltip>
+            <Tooltip title="刷新当前目录">
+                <Button shape="circle" icon={<ReloadOutlined/>} disabled={tableLoading}
                         onClick={() => listDir(wd)}
                 />
             </Tooltip>
-            <Button type="primary" onClick={uploadFile} icon={<UploadOutlined />}>上传文件到：{wd}</Button>
+            <Tooltip title="返回根目录">
+                <Button shape="circle" icon={<HomeOutlined/>} disabled={wd === "/"}
+                        onClick={() => listDir("/")}/>
+            </Tooltip>
+            <Tooltip title={`下载远程文件到: ${wd}`}>
+                <Button icon={<CloudDownloadOutlined/>} onClick={cloudDownloadFile}
+                        disabled={tableLoading}>云下载</Button>
+            </Tooltip>
+            <Tooltip title={`上传本地文件到: ${wd}`}>
+                <Button type="primary" onClick={uploadFile} icon={<CloudUploadOutlined/>}
+                        disabled={tableLoading}>云上传</Button>
+            </Tooltip>
         </Space>
         <Table className="file-table" columns={columns} dataSource={list}
-               scroll={{x: 1000, y: 405}}
+               scroll={{x: 790, y: 405}}
                size="small"
                expandable
                loading={tableLoading}

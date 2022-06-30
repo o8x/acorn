@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -180,7 +181,7 @@ func (c *Connect) SCPDownload(ctx context.Context, id int, file string) *respons
 		ResolvesAliases:      true,
 	})
 	if dir = strings.TrimSpace(dir); dir == "" || err != nil {
-		return response.Error(fmt.Errorf("所选目录无效 %v", err))
+		return response.Error(fmt.Errorf("所选目录无效"))
 	}
 
 	script, err := c.MakeSCPDownloadCommand(file, dir, p)
@@ -210,8 +211,8 @@ func (c *Connect) SCPUpload(ctx context.Context, id int, dir string) *response.R
 		ShowHiddenFiles:      true,
 		CanCreateDirectories: true,
 	})
-	if err != nil {
-		return response.Error(err)
+	if sFile = strings.TrimSpace(sFile); sFile == "" || err != nil {
+		return response.Error(fmt.Errorf("所选文件无效"))
 	}
 
 	script, err := c.MakeSCPUploadCommand(sFile, dir, p)
@@ -224,6 +225,36 @@ func (c *Connect) SCPUpload(ctx context.Context, id int, dir string) *response.R
 	}
 
 	if err := c.updateLastUseTime(id); err != nil {
+		return response.Error(err)
+	}
+
+	return response.NoContent()
+}
+
+func (c *Connect) CloudDownload(id int, dir, link string) *response.Response {
+	var p ConnectItem
+	if err := GetInfoByID(id, &p); err != nil {
+		return response.Error(err)
+	}
+
+	l, err := url.Parse(link)
+	if err != nil {
+		return response.Error(err)
+	}
+
+	_, file := filepath.Split(l.Path)
+	if file == "" {
+		return response.Error(fmt.Errorf("无法解析文件名(%s)", l.Path))
+	}
+
+	script, err := c.MakeCloudDownloadCommand(link, filepath.Join(dir, file), p)
+	if err != nil {
+		return response.Error(err)
+	}
+
+	fmt.Println(script)
+
+	if err = exec.Command("osascript", script).Start(); err != nil {
 		return response.Error(err)
 	}
 
@@ -287,7 +318,7 @@ func (c *Connect) updateLastUseTime(id int) error {
 
 func (c *Connect) makeSSHScript(command string, p ConnectItem) (string, error) {
 	cmdline := fmt.Sprintf(`%s {params} -p %d %s@%s`, command, p.Port, p.UserName, p.Host)
-	return c.CreateScript(cmdline, p)
+	return c.CreateScript(cmdline, false, p)
 }
 
 func (c *Connect) MakeSCPDownloadCommand(from, to string, p ConnectItem) (string, error) {
@@ -297,15 +328,20 @@ func (c *Connect) MakeSCPDownloadCommand(from, to string, p ConnectItem) (string
 	}
 
 	cmdline := fmt.Sprintf(`scp -r {params} -P %d '%s@%s:%s' '%s'`, p.Port, p.UserName, p.Host, from, to)
-	return c.CreateScript(cmdline, p)
+	return c.CreateScript(cmdline, false, p)
 }
 
 func (c *Connect) MakeSCPUploadCommand(from, to string, p ConnectItem) (string, error) {
 	cmdline := fmt.Sprintf(`scp -r {params} -P %d '%s' '%s@%s:%s'`, p.Port, from, p.UserName, p.Host, to)
-	return c.CreateScript(cmdline, p)
+	return c.CreateScript(cmdline, false, p)
 }
 
-func (c *Connect) CreateScript(cmdline string, p ConnectItem) (string, error) {
+func (c *Connect) MakeCloudDownloadCommand(link, file string, p ConnectItem) (string, error) {
+	cmdline := fmt.Sprintf("ssh {params} -p %d %s@%s curl -o %s '%s'", p.Port, p.UserName, p.Host, file, link)
+	return c.CreateScript(cmdline, false, p)
+}
+
+func (c *Connect) CreateScript(cmdline string, autoClose bool, p ConnectItem) (string, error) {
 	script := string(iterm2Script)
 
 	if p.AuthType == "private_key" {
@@ -324,6 +360,7 @@ func (c *Connect) CreateScript(cmdline string, p ConnectItem) (string, error) {
 	cmdline = strings.ReplaceAll(cmdline, "{params}", p.Params)
 	script = strings.ReplaceAll(script, "{password}", p.Password)
 	script = strings.ReplaceAll(script, "{commands}", cmdline)
+	script = strings.ReplaceAll(script, "{auto_close}", fmt.Sprintf("%v", autoClose))
 
 	f, err := utils.WriteTempFileAutoClose(script)
 	if err != nil {
