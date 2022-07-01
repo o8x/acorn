@@ -1,8 +1,19 @@
 import React from "react"
-import {Layout, Menu, Typography} from "antd"
+import {Layout, Menu} from "antd"
 import {Link, Route, Routes} from "react-router-dom"
 
-import {ApartmentOutlined, ToolOutlined} from "@ant-design/icons"
+import {
+    ApartmentOutlined,
+    CheckOutlined,
+    ClockCircleOutlined,
+    CreditCardOutlined,
+    EditOutlined,
+    FieldStringOutlined,
+    FormatPainterOutlined,
+    FunctionOutlined,
+    ToolOutlined,
+} from "@ant-design/icons"
+
 import "./App.css"
 import Connect from "./Pages/Connect"
 import Transfer from "./Pages/Transfer"
@@ -13,7 +24,6 @@ import TextCodec from "./Pages/TextCodec"
 import MakePassword from "./Pages/MakePassword"
 import Timestamp from "./Pages/Timestamp"
 
-const {Title} = Typography
 const {Content, Sider} = Layout
 
 export default class extends React.Component {
@@ -35,32 +45,36 @@ export default class extends React.Component {
                 minHeight: "100vh",
             }}
         >
-            <Sider collapsible collapsed={collapsed} onCollapse={this.setCollapse}>
-                <div className="logo" data-wails-drag>
-
-                </div>
+            <Sider collapsible collapsed={collapsed} onCollapse={this.setCollapse} style={{
+                overflow: "auto",
+                height: "100vh",
+            }}>
+                <div className="logo" data-wails-drag onClick={() => this.setCollapse(!collapsed)}></div>
                 <Menu theme="dark" defaultSelectedKeys={this.state.selected} mode="inline">
                     <Menu.Item key="0" icon={<ApartmentOutlined/>}>
                         <Link to="/">连接</Link>
                     </Menu.Item>
-                    <Menu.SubMenu title="工具" key="2" icon={<ToolOutlined/>}>
-                        <Menu.Item key="2_1">
+                    <Menu.Item key="1" icon={<FieldStringOutlined/>}>
+                        <Link to="/tools/textcodec">文本编解码</Link>
+                    </Menu.Item>
+                    <Menu.Item key="2" icon={<FunctionOutlined/>}>
+                        <Link to="/tools/radix">进制转换</Link>
+                    </Menu.Item>
+                    <Menu.Item key="3" icon={<CheckOutlined/>}>
+                        <Link to="/tools/regtest">正则测试</Link>
+                    </Menu.Item>
+                    <Menu.Item key="4" icon={<EditOutlined/>}>
+                        <Link to="/tools/hexedit">16进制编辑器</Link>
+                    </Menu.Item>
+                    <Menu.SubMenu title="工具" key="99" icon={<ToolOutlined/>}>
+                        <Menu.Item key="99.1" icon={<FormatPainterOutlined/>}>
                             <Link to="/tools/json">JSON美化</Link>
                         </Menu.Item>
-                        <Menu.Item key="2_2">
-                            <Link to="/tools/radix">进制转换</Link>
-                        </Menu.Item>
-                        <Menu.Item key="2_3">
-                            <Link to="/tools/regtest">正则测试</Link>
-                        </Menu.Item>
-                        <Menu.Item key="2_4">
-                            <Link to="/tools/textcodec">文本编解码</Link>
-                        </Menu.Item>
-                        <Menu.Item key="2_5">
-                            <Link to="/tools/makepass">密码生成</Link>
-                        </Menu.Item>
-                        <Menu.Item key="2_6">
+                        <Menu.Item key="99.2" icon={<ClockCircleOutlined/>}>
                             <Link to="/tools/timestamp">时间戳转换</Link>
+                        </Menu.Item>
+                        <Menu.Item key="99.3" icon={<CreditCardOutlined/>}>
+                            <Link to="/tools/makepass">密码生成</Link>
                         </Menu.Item>
                     </Menu.SubMenu>
                 </Menu>
