@@ -129,12 +129,8 @@ export default function () {
                     <Select.Option value="">更多</Select.Option>
                     <Select.Option value="SHA224">SHA224</Select.Option>
                     <Select.Option value="Base58">Base58</Select.Option>
-                    <Select.Option value="Gzip">GZip</Select.Option>
                     <Select.Option value="MD5">MD5</Select.Option>
-                    <Select.Option value="unicode">UNICode</Select.Option>
-                    <Select.Option value="html">HTML实体</Select.Option>
-                    <Select.Option value="toml">TOML</Select.Option>
-                    <Select.Option value="yaml">YAML</Select.Option>
+                    <Select.Option value="Gzip">GZip</Select.Option>
                     <Select.Option value="AES">AES</Select.Option>
                 </Select>
             </Form.Item>
