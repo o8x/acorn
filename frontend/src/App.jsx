@@ -4,10 +4,13 @@ import {Link, Route, Routes} from "react-router-dom"
 
 import {
     ApartmentOutlined,
+    BorderlessTableOutlined,
     CheckOutlined,
     ClockCircleOutlined,
+    ControlOutlined,
     CreditCardOutlined,
     EditOutlined,
+    EyeOutlined,
     FieldStringOutlined,
     FormatPainterOutlined,
     FunctionOutlined,
@@ -23,6 +26,7 @@ import RegTest from "./Pages/RegTest"
 import TextCodec from "./Pages/TextCodec"
 import MakePassword from "./Pages/MakePassword"
 import Timestamp from "./Pages/Timestamp"
+import ASCIITable from "./Pages/ASCIITable"
 
 const {Content, Sider} = Layout
 
@@ -66,6 +70,14 @@ export default class extends React.Component {
                     <Menu.Item key="4" icon={<EditOutlined/>}>
                         <Link to="/tools/hexedit">16进制编辑器</Link>
                     </Menu.Item>
+                    <Menu.SubMenu title="ASCII" key="5" icon={<BorderlessTableOutlined/>}>
+                        <Menu.Item key="5.1" icon={<EyeOutlined/>}>
+                            <Link to="/tools/ascii/visible">可见字符</Link>
+                        </Menu.Item>
+                        <Menu.Item key="5.2" icon={<ControlOutlined/>}>
+                            <Link to="/tools/ascii/control">控制字符</Link>
+                        </Menu.Item>
+                    </Menu.SubMenu>
                     <Menu.SubMenu title="工具" key="99" icon={<ToolOutlined/>}>
                         <Menu.Item key="99.1" icon={<FormatPainterOutlined/>}>
                             <Link to="/tools/json">JSON美化</Link>
@@ -90,6 +102,7 @@ export default class extends React.Component {
                         <Route path="/tools/textcodec" element={<TextCodec setCollapse={this.setCollapse}/>}/>}/>
                         <Route path="/tools/makepass" element={<MakePassword setCollapse={this.setCollapse}/>}/>}/>
                         <Route path="/tools/timestamp" element={<Timestamp setCollapse={this.setCollapse}/>}/>}/>
+                        <Route path="/tools/ascii/:type" element={<ASCIITable setCollapse={this.setCollapse}/>}/>}/>
                         <Route path="*" element={<Connect/>}/>
                     </Routes>
                 </Content>

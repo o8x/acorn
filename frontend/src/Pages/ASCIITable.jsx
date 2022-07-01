@@ -1,0 +1,166 @@
+import React from "react"
+import Container from "./Container"
+import {Table} from "antd"
+import {useParams} from "react-router-dom"
+
+const columns = [
+    {title: "2进制", dataIndex: "bin", width: 150},
+    {title: "10进制", dataIndex: "no", width: 100},
+    {title: "16进制", dataIndex: "hex", width: 100},
+    {title: "字符", dataIndex: "char", width: 100},
+    {
+        title: "解释", dataIndex: "intro", render: (_, r) => {
+            if (parseInt(r.no) > 31 && parseInt(r.no) < 127) {
+                return "-"
+            }
+            return r.intro
+        },
+    },
+]
+
+export default function () {
+    const {type} = useParams()
+
+    const visible_chars = [
+        {bin: "0010 0000", no: "32", hex: "20", char: "空格"},
+        {bin: "0010 0001", no: "33", hex: "21", char: "!"},
+        {bin: "0010 0010", no: "34", hex: "22", char: "\""},
+        {bin: "0010 0011", no: "35", hex: "23", char: "#"},
+        {bin: "0010 0100", no: "36", hex: "24", char: "$"},
+        {bin: "0010 0101", no: "37", hex: "25", char: "%"},
+        {bin: "0010 0110", no: "38", hex: "26", char: "&"},
+        {bin: "0010 0111", no: "39", hex: "27", char: "'"},
+        {bin: "0010 1000", no: "40", hex: "28", char: "("},
+        {bin: "0010 1001", no: "41", hex: "29", char: ")"},
+        {bin: "0010 1010", no: "42", hex: "2A", char: "*"},
+        {bin: "0010 1011", no: "43", hex: "2B", char: "+"},
+        {bin: "0010 1100", no: "44", hex: "2C", char: ","},
+        {bin: "0010 1101", no: "45", hex: "2D", char: "-"},
+        {bin: "0010 1110", no: "46", hex: "2E", char: "."},
+        {bin: "0010 1111", no: "47", hex: "2F", char: "/"},
+        {bin: "0011 0000", no: "48", hex: "30", char: "0"},
+        {bin: "0011 0001", no: "49", hex: "31", char: "1"},
+        {bin: "0011 0010", no: "50", hex: "32", char: "2"},
+        {bin: "0011 0011", no: "51", hex: "33", char: "3"},
+        {bin: "0011 0100", no: "52", hex: "34", char: "4"},
+        {bin: "0011 0101", no: "53", hex: "35", char: "5"},
+        {bin: "0011 0110", no: "54", hex: "36", char: "6"},
+        {bin: "0011 0111", no: "55", hex: "37", char: "7"},
+        {bin: "0011 1000", no: "56", hex: "38", char: "8"},
+        {bin: "0011 1001", no: "57", hex: "39", char: "9"},
+        {bin: "0011 1010", no: "58", hex: "3A", char: ":"},
+        {bin: "0011 1011", no: "59", hex: "3B", char: ";"},
+        {bin: "0011 1100", no: "60", hex: "3C", char: "<"},
+        {bin: "0011 1101", no: "61", hex: "3D", char: "="},
+        {bin: "0011 1110", no: "62", hex: "3E", char: ">"},
+        {bin: "0011 1111", no: "63", hex: "3F", char: "?"},
+        {bin: "0100 0000", no: "64", hex: "40", char: "@"},
+        {bin: "0100 0001", no: "65", hex: "41", char: "A"},
+        {bin: "0100 0010", no: "66", hex: "42", char: "B"},
+        {bin: "0100 0011", no: "67", hex: "43", char: "C"},
+        {bin: "0100 0100", no: "68", hex: "44", char: "D"},
+        {bin: "0100 0101", no: "69", hex: "45", char: "E"},
+        {bin: "0100 0110", no: "70", hex: "46", char: "F"},
+        {bin: "0100 0111", no: "71", hex: "47", char: "G"},
+        {bin: "0100 1000", no: "72", hex: "48", char: "H"},
+        {bin: "0100 1001", no: "73", hex: "49", char: "I"},
+        {bin: "0100 1010", no: "74", hex: "4A", char: "J"},
+        {bin: "0100 1011", no: "75", hex: "4B", char: "K"},
+        {bin: "0100 1100", no: "76", hex: "4C", char: "L"},
+        {bin: "0100 1101", no: "77", hex: "4D", char: "M"},
+        {bin: "0100 1110", no: "78", hex: "4E", char: "N"},
+        {bin: "0100 1111", no: "79", hex: "4F", char: "O"},
+        {bin: "0101 0000", no: "80", hex: "50", char: "P"},
+        {bin: "0101 0001", no: "81", hex: "51", char: "Q"},
+        {bin: "0101 0010", no: "82", hex: "52", char: "R"},
+        {bin: "0101 0011", no: "83", hex: "53", char: "S"},
+        {bin: "0101 0100", no: "84", hex: "54", char: "T"},
+        {bin: "0101 0101", no: "85", hex: "55", char: "U"},
+        {bin: "0101 0110", no: "86", hex: "56", char: "V"},
+        {bin: "0101 0111", no: "87", hex: "57", char: "W"},
+        {bin: "0101 1000", no: "88", hex: "58", char: "X"},
+        {bin: "0101 1001", no: "89", hex: "59", char: "Y"},
+        {bin: "0101 1010", no: "90", hex: "5A", char: "Z"},
+        {bin: "0101 1011", no: "91", hex: "5B", char: "["},
+        {bin: "0101 1100", no: "92", hex: "5C", char: "\\"},
+        {bin: "0101 1101", no: "93", hex: "5D", char: "]"},
+        {bin: "0101 1110", no: "94", hex: "5E", char: "^"},
+        {bin: "0101 1111", no: "95", hex: "5F", char: "_"},
+        {bin: "0110 0000", no: "96", hex: "60", char: "`"},
+        {bin: "0110 0001", no: "97", hex: "61", char: "a"},
+        {bin: "0110 0010", no: "98", hex: "62", char: "b"},
+        {bin: "0110 0011", no: "99", hex: "63", char: "c"},
+        {bin: "0110 0100", no: "100", hex: "64", char: "d"},
+        {bin: "0110 0101", no: "101", hex: "65", char: "e"},
+        {bin: "0110 0110", no: "102", hex: "66", char: "f"},
+        {bin: "0110 0111", no: "103", hex: "67", char: "g"},
+        {bin: "0110 1000", no: "104", hex: "68", char: "h"},
+        {bin: "0110 1001", no: "105", hex: "69", char: "i"},
+        {bin: "0110 1010", no: "106", hex: "6A", char: "j"},
+        {bin: "0110 1011", no: "107", hex: "6B", char: "k"},
+        {bin: "0110 1100", no: "108", hex: "6C", char: "l"},
+        {bin: "0110 1101", no: "109", hex: "6D", char: "m"},
+        {bin: "0110 1110", no: "110", hex: "6E", char: "n"},
+        {bin: "0110 1111", no: "111", hex: "6F", char: "o"},
+        {bin: "0111 0000", no: "112", hex: "70", char: "p"},
+        {bin: "0111 0001", no: "113", hex: "71", char: "q"},
+        {bin: "0111 0010", no: "114", hex: "72", char: "r"},
+        {bin: "0111 0011", no: "115", hex: "73", char: "s"},
+        {bin: "0111 0100", no: "116", hex: "74", char: "t"},
+        {bin: "0111 0101", no: "117", hex: "75", char: "u"},
+        {bin: "0111 0110", no: "118", hex: "76", char: "v"},
+        {bin: "0111 0111", no: "119", hex: "77", char: "w"},
+        {bin: "0111 1000", no: "120", hex: "78", char: "x"},
+        {bin: "0111 1001", no: "121", hex: "79", char: "y"},
+        {bin: "0111 1010", no: "122", hex: "7A", char: "z"},
+        {bin: "0111 1011", no: "123", hex: "7B", char: "{"},
+        {bin: "0111 1100", no: "124", hex: "7C", char: "|"},
+        {bin: "0111 1101", no: "125", hex: "7D", char: "}"},
+        {bin: "0111 1110", no: "126", hex: "7E", char: "~"},
+    ]
+
+    const control_chars = [
+        {bin: "0000 0000", no: "00", hex: "00", char: "NUL", intro: "空字符 NULL"},
+        {bin: "0000 0001", no: "01", hex: "01", char: "SOH", intro: "标题开始"},
+        {bin: "0000 0010", no: "02", hex: "02", char: "STX", intro: "正文开始"},
+        {bin: "0000 0011", no: "03", hex: "03", char: "ETX", intro: "正文结束"},
+        {bin: "0000 0100", no: "04", hex: "04", char: "EOT", intro: "传输结束"},
+        {bin: "0000 0101", no: "05", hex: "05", char: "ENQ", intro: "请求"},
+        {bin: "0000 0110", no: "06", hex: "06", char: "ACK", intro: "确认收到"},
+        {bin: "0000 0111", no: "07", hex: "07", char: "BEL", intro: "响铃 Bell"},
+        {bin: "0000 1000", no: "08", hex: "08", char: "BS", intro: "退格"},
+        {bin: "0000 1001", no: "09", hex: "09", char: "TAB/HT", intro: "制表符/水平定位符号"},
+        {bin: "0000 1010", no: "10", hex: "0A", char: "LF/NL", intro: "换行键"},
+        {bin: "0000 1011", no: "11", hex: "0B", char: "VT", intro: "垂直定位符号"},
+        {bin: "0000 1100", no: "12", hex: "0C", char: "FD", intro: "换页键"},
+        {bin: "0000 1101", no: "13", hex: "0D", char: "CR", intro: "回车键"},
+        {bin: "0000 1110", no: "14", hex: "0E", char: "SO", intro: "取消切换 Shift Out"},
+        {bin: "0000 1111", no: "15", hex: "0F", char: "SI", intro: "打开切换 Shift In"},
+        {bin: "0001 0000", no: "16", hex: "10", char: "DLE", intro: "Data Link Escape 跳出数据通讯"},
+        {bin: "0001 0001", no: "17", hex: "11", char: "DC1/XON", intro: "设备控制1（XON 启用软体速度控制）"},
+        {bin: "0001 0010", no: "18", hex: "12", char: "DC2", intro: "设备控制2"},
+        {bin: "0001 0011", no: "19", hex: "13", char: "DC3/XOFF", intro: "设备控制3（XOFF 停用软体速度控制）"},
+        {bin: "0001 0100", no: "20", hex: "14", char: "DC4", intro: "设备控制4"},
+        {bin: "0001 0101", no: "21", hex: "15", char: "NAK", intro: "确认失败回应"},
+        {bin: "0001 0110", no: "22", hex: "16", char: "SYN", intro: "同步用暂停"},
+        {bin: "0001 0111", no: "23", hex: "17", char: "ETB", intro: "区块传输结束"},
+        {bin: "0001 1000", no: "24", hex: "18", char: "CAN", intro: "取消 Cancel"},
+        {bin: "0001 1001", no: "25", hex: "19", char: "EM", intro: "连接介质中断"},
+        {bin: "0001 1010", no: "26", hex: "1A", char: "SUB", intro: " (Substitute)	替补/替换"},
+        {bin: "0001 1011", no: "27", hex: "1B", char: "ESC", intro: "退出"},
+        {bin: "0001 1100", no: "28", hex: "1C", char: "FS", intro: "文件分割符"},
+        {bin: "0001 1101", no: "29", hex: "1D", char: "GS", intro: "组分隔符"},
+        {bin: "0001 1110", no: "30", hex: "1E", char: "RS", intro: "记录分离符"},
+        {bin: "0001 1111", no: "31", hex: "1F", char: "US", intro: "单元分隔符"},
+        {bin: "0111 1111", no: "127", hex: "7F", char: "DEL", intro: "删除"},
+    ]
+
+    return <Container title="ASCII" subTitle={type === "control" ? "ASCII 中的控制字符及其含义" : "ASCII 中的可见字符"}>
+        <Table
+            size="small"
+            rowKey={() => Math.random()}
+            dataSource={type === "visible" ? visible_chars : control_chars} pagination={false} columns={columns}
+            scroll={{y: 480}}
+        />
+    </Container>
+}
