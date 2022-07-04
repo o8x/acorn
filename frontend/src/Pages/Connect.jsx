@@ -1,5 +1,20 @@
 import React from "react"
-import {Avatar, Button, Col, Divider, Form, Input, message, Modal, Radio, Row, Select, Space, Table} from "antd"
+import {
+    Avatar,
+    Button,
+    Col,
+    Divider,
+    Form,
+    Input,
+    message,
+    Modal,
+    Radio,
+    Row,
+    Select,
+    Space,
+    Table,
+    Tooltip,
+} from "antd"
 import Container from "./Container"
 import "./Connect.css"
 import CustomModal from "../Components/Modal"
@@ -12,7 +27,7 @@ import linuxLogo from "../assets/images/linux-logo.png"
 import openwrtLogo from "../assets/images/openwrt-logo.png"
 import ubuntuLogo from "../assets/images/ubuntu-logo.png"
 import windowsLogo from "../assets/images/windows-logo.png"
-import {EditOutlined} from "@ant-design/icons"
+import {EditOutlined, InfoCircleOutlined, ReloadOutlined} from "@ant-design/icons"
 
 function getLogoSrc(type) {
     switch (type.toLowerCase()) {
@@ -41,7 +56,9 @@ const OSList = [
 
 export default class extends React.Component {
     state = {
-        list: [], quickAddInput: "", quickAddInputLoading: false,
+        list: [], quickAddInput: "",
+        quickAddInputLoading: false,
+        reloadListLoading: false,
         pagesize: 6,
     }
 
@@ -49,12 +66,17 @@ export default class extends React.Component {
         super(props)
         this.labelInputRef = React.createRef()
         this.modalRef = React.createRef()
+    }
+
+    componentDidMount() {
         this.loadList()
     }
 
     loadList(keyword) {
+        this.setState({reloadListLoading: true})
         window.runtime.EventsEmit("get_connects", keyword)
         window.runtime.EventsOnce("set_connects", data => {
+            this.setState({reloadListLoading: false})
             if (data.status_code === 500) {
                 return message.error(data.message)
             }
@@ -319,7 +341,7 @@ export default class extends React.Component {
                     <a key="list-conn" onClick={() => this.SSHConnect(item)}>连接</a>
                     {
                         item.params.indexOf("ProxyCommand") !== -1 || isNT ?
-                            <a href="#" disabled>传输</a>:
+                            <a href="#" disabled>传输</a> :
                             <Link to={`/transfer/${btoa(encodeURIComponent(JSON.stringify(item)))}`}>传输</Link>
                     }
                     {
@@ -346,19 +368,30 @@ export default class extends React.Component {
     render() {
         return <Container title="远程连接" subTitle="快速连接SSH和进行双向文件传输">
             <Form onFinish={this.AddSSHConnect}>
-                <Input.Group compact>
-                    <Input value={this.state.quickAddInput}
-                           onChange={this.handleAddInputOnChange}
-                           allowClear={true}
-                           placeholder="root@example.com"
-                           style={{width: "calc(100% - 300px)"}}/>
-                    <Button type="primary" htmlType="submit">快速添加</Button>
-                </Input.Group>
+                <Space>
+                    <Tooltip title="刷新列表">
+                        <Button shape="circle" icon={<ReloadOutlined/>} disabled={this.state.quickAddInputLoading}
+                                onClick={() => this.loadList("")}
+                        />
+                    </Tooltip>
+                    <Input
+                        addonBefore="ssh"
+                        value={this.state.quickAddInput}
+                        onChange={this.handleAddInputOnChange}
+                        allowClear={true}
+                        placeholder="[-p 2233] [-o xx] root@example.com"
+                        style={{width: 350}}
+                        suffix={<Tooltip title="将会自动解析 ssh 参数">
+                            <InfoCircleOutlined/>
+                        </Tooltip>}
+                    />
+                </Space>
             </Form>
             <Table
                 style={{
                     marginTop: 10,
                 }}
+                loading={this.state.reloadListLoading}
                 columns={this.columns}
                 dataSource={this.state.list}
                 showHeader={true}
