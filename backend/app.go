@@ -225,6 +225,18 @@ func (c *App) Startup(ctx context.Context) {
 		)
 	})
 
+	runtime.EventsOn(ctx, "drag_upload_files", func(data ...interface{}) {
+		id, _ := strconv.ParseInt(data[0].(string), 10, 32)
+		b64 := strings.Split(data[3].(string), "base64,")
+		if len(b64) > 1 {
+			runtime.EventsEmit(ctx, "drag_upload_files_reply",
+				c.connect.SCPUploadBase64(int(id), data[1].(string), data[2].(string), b64[1]),
+			)
+			return
+		}
+		runtime.EventsEmit(ctx, "drag_upload_files_reply", response.Warn("无效文件流"))
+	})
+
 	runtime.EventsOn(ctx, "cloud_download", func(data ...interface{}) {
 		id, _ := strconv.ParseInt(data[0].(string), 10, 32)
 

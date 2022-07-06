@@ -1,3 +1,11 @@
 .file-table {
     margin-top: 10px;
 }
+
+.ant-upload.ant-upload-drag .ant-upload {
+    padding: 0;
+}
+
+.ant-upload-list {
+    display: none !important;
+}

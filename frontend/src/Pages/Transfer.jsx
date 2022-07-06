@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react"
 import Container from "./Container"
 import "./Transfer.css"
-import {Button, Input, message, Modal, Space, Table, Tooltip} from "antd"
+import {Button, Input, message, Modal, Space, Table, Tooltip, Upload} from "antd"
 import {useParams} from "react-router-dom"
 import {
     CloudDownloadOutlined,
@@ -10,6 +10,8 @@ import {
     ReloadOutlined,
     RollbackOutlined,
 } from "@ant-design/icons"
+
+const {Dragger} = Upload
 
 export default function (props) {
     const {id: args} = useParams()
@@ -21,6 +23,7 @@ export default function (props) {
     let [pn, setPN] = useState(1)
     let [tableLoading, setTableLoading] = useState(false)
     let [pageSize, setPageSize] = useState(30)
+    let [fileList, setFileList] = useState([])
     let labelInputRef = React.createRef()
 
     function resolve(name) {
@@ -156,6 +159,36 @@ export default function (props) {
         props.setCollapse(true)
     }, [])
 
+    const dragProps = {
+        multiple: false,
+        showUploadList: false,
+        fileList,
+        beforeUpload: () => false,
+        onChange: info => info.fileList.map(it => {
+            // 多文件上传时，将会出现重复遍历的问题
+            setFileList(() => {
+                const r = new FileReader()
+                r.readAsDataURL(it.originFileObj)
+                r.onload = () => {
+                    window.runtime.EventsEmit("drag_upload_files", id, wd, it.name, r.result)
+                    window.runtime.EventsOnce("drag_upload_files_reply", data => {
+                        if (data.status_code === 500) {
+                            return message.error(`上传文件流${wd}失败: ${data.message}`)
+                        }
+
+                        message.success(`正在将文件流上传至： ${wd}`)
+                    })
+                }
+
+                r.onerror = message.error
+                return []
+            })
+        }),
+        onDrop(e) {
+            console.log("Dropped files", e.dataTransfer.files)
+        },
+    }
+
     return <Container title={label} subTitle={`${username}@${host}:${wd}`}>
         <Space>
             <Tooltip title="返回上一级目录">
@@ -175,10 +208,12 @@ export default function (props) {
                 <Button icon={<CloudDownloadOutlined/>} onClick={cloudDownloadFile}
                         disabled={tableLoading}>云下载</Button>
             </Tooltip>
-            <Tooltip title={`上传本地文件到: ${wd}`}>
-                <Button type="primary" onClick={uploadFile} icon={<CloudUploadOutlined/>}
-                        disabled={tableLoading}>云上传</Button>
-            </Tooltip>
+            <Dragger {...dragProps}>
+                <Tooltip title={`将本地文件上传到: ${wd}，同时支持将文件拖拽到本按钮上以文件流形式上传`}>
+                    <Button type="primary" onClick={uploadFile} icon={<CloudUploadOutlined/>}
+                            disabled={tableLoading}>云上传</Button>
+                </Tooltip>
+            </Dragger>
         </Space>
         <Table className="file-table" columns={columns} dataSource={list}
                scroll={{x: 790, y: 405}}

@@ -3,6 +3,7 @@ package backend
 import (
 	"context"
 	_ "embed"
+	"encoding/base64"
 	"fmt"
 	"net/url"
 	"os"
@@ -216,6 +217,42 @@ func (c *Connect) SCPUpload(ctx context.Context, id int, dir string) *response.R
 	}
 
 	script, err := c.MakeSCPUploadCommand(sFile, dir, p)
+	if err != nil {
+		return response.Error(err)
+	}
+
+	if err = exec.Command("osascript", script).Start(); err != nil {
+		return response.Error(err)
+	}
+
+	if err := c.updateLastUseTime(id); err != nil {
+		return response.Error(err)
+	}
+
+	return response.NoContent()
+}
+
+func (c *Connect) SCPUploadBase64(id int, dir, filename, b64 string) *response.Response {
+	var p ConnectItem
+	if err := GetInfoByID(id, &p); err != nil {
+		return response.Error(err)
+	}
+
+	temp, err := os.Create(filepath.Join(os.TempDir(), filename))
+	if err != nil {
+		return response.Error(err)
+	}
+
+	bs, err := base64.StdEncoding.DecodeString(b64)
+	if err != nil {
+		return response.Error(err)
+	}
+
+	if _, err := temp.Write(bs); err != nil {
+		return response.Error(err)
+	}
+
+	script, err := c.MakeSCPUploadCommand(temp.Name(), dir, p)
 	if err != nil {
 		return response.Error(err)
 	}
