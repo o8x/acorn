@@ -27,7 +27,7 @@ import linuxLogo from "../assets/images/linux-logo.png"
 import openwrtLogo from "../assets/images/openwrt-logo.png"
 import ubuntuLogo from "../assets/images/ubuntu-logo.png"
 import windowsLogo from "../assets/images/windows-logo.png"
-import {EditOutlined, InfoCircleOutlined, ReloadOutlined} from "@ant-design/icons"
+import {CodeOutlined, EditOutlined, InfoCircleOutlined, ReloadOutlined} from "@ant-design/icons"
 
 function getLogoSrc(type) {
     switch (type.toLowerCase()) {
@@ -365,6 +365,15 @@ export default class extends React.Component {
         }
     }
 
+    openLocalConsole = () => {
+        window.runtime.EventsEmit("open_local_console")
+        window.runtime.EventsOnce("open_local_console_reply", data => {
+            if (data.status_code === 500) {
+                return message.error(data.message)
+            }
+        })
+    }
+
     render() {
         return <Container title="远程连接" subTitle="快速连接SSH和进行双向文件传输">
             <Form onFinish={this.AddSSHConnect}>
@@ -373,6 +382,9 @@ export default class extends React.Component {
                         <Button shape="circle" icon={<ReloadOutlined/>} disabled={this.state.quickAddInputLoading}
                                 onClick={() => this.loadList("")}
                         />
+                    </Tooltip>
+                    <Tooltip title="新建 iTerm 本地会话">
+                        <Button shape="circle" icon={<CodeOutlined/>} onClick={() => this.openLocalConsole("")}/>
                     </Tooltip>
                     <Input
                         addonBefore="ssh"

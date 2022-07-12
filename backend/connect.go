@@ -168,6 +168,20 @@ func (c *Connect) PingConnect(id int) *response.Response {
 	return response.NoContent()
 }
 
+func (c *Connect) OpenLocalConsole() *response.Response {
+	script := strings.ReplaceAll(string(iterm2Script), "{commands}", "")
+	f, err := utils.WriteTempFileAutoClose(script)
+	if err != nil {
+		return response.Error(err)
+	}
+
+	if err = exec.Command("osascript", f.Name()).Start(); err != nil {
+		return response.Error(err)
+	}
+
+	return response.NoContent()
+}
+
 func (c *Connect) SCPDownload(ctx context.Context, id int, file string) *response.Response {
 	var p ConnectItem
 	if err := GetInfoByID(id, &p); err != nil {

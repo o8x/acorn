@@ -85,6 +85,10 @@ func (c *App) Startup(ctx context.Context) {
 		runtime.EventsEmit(ctx, "ping_connect_reply", response.NoContent())
 	})
 
+	runtime.EventsOn(ctx, "open_local_console", func(data ...interface{}) {
+		runtime.EventsEmit(ctx, "open_local_console_reply", c.connect.OpenLocalConsole())
+	})
+
 	runtime.EventsOn(ctx, "edit_connect", func(data ...interface{}) {
 		marshal, err := json.Marshal(data[0])
 		if err != nil {

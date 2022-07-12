@@ -14,8 +14,14 @@ else
 end if
 
 tell application "iTerm"
+    # 命令为空时，直接退出执行
+    set commands to "{commands}" as String
+    if commands = "" then
+        exit
+    end if
+
     # 将命令输入到会话中
-    tell _session to write text "{commands}" with newline
+    tell _session to write text commands with newline
     # 循环检查是否需要输入密码
     set completed to false
     set failed to false
