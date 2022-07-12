@@ -22,6 +22,15 @@ tell application "iTerm"
 
     # 将命令输入到会话中
     tell _session to write text commands with newline
+
+    # 设置工作目录
+    set workdir to "{workdir}" as String
+    if workdir = "" then
+    else
+        set workdir to "cd '{workdir}'"
+        tell _session to write text workdir with newline
+    end if
+
     # 循环检查是否需要输入密码
     set completed to false
     set failed to false

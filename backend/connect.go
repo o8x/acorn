@@ -50,13 +50,15 @@ type ConnectItem struct {
 	AuthType    string    `json:"auth_type"`
 	LastUseTime int       `json:"last_use_time"`
 	CreateTime  time.Time `json:"create_time"`
+	Workdir     string    `json:"workdir"`
 }
 
-func (c *Connect) SSHConnect(id int) *response.Response {
+func (c *Connect) SSHConnect(id int, workdir string) *response.Response {
 	var p ConnectItem
 	if err := GetInfoByID(id, &p); err != nil {
 		return response.Error(err)
 	}
+	p.Workdir = workdir
 
 	if err := c.updateLastUseTime(id); err != nil {
 		return response.Error(err)
@@ -412,6 +414,7 @@ func (c *Connect) CreateScript(cmdline string, autoClose bool, p ConnectItem) (s
 	script = strings.ReplaceAll(script, "{password}", p.Password)
 	script = strings.ReplaceAll(script, "{commands}", cmdline)
 	script = strings.ReplaceAll(script, "{auto_close}", fmt.Sprintf("%v", autoClose))
+	script = strings.ReplaceAll(script, "{workdir}", p.Workdir)
 
 	f, err := utils.WriteTempFileAutoClose(script)
 	if err != nil {

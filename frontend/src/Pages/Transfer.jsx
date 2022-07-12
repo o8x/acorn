@@ -6,6 +6,7 @@ import {useParams} from "react-router-dom"
 import {
     CloudDownloadOutlined,
     CloudUploadOutlined,
+    CodeOutlined,
     HomeOutlined,
     ReloadOutlined,
     RollbackOutlined,
@@ -189,6 +190,15 @@ export default function (props) {
         },
     }
 
+    function SSHConnect(id, workdir) {
+        window.runtime.EventsEmit("open_ssh_session", [parseInt(id)], workdir)
+        window.runtime.EventsOnce("open_ssh_session_reply", data => {
+            if (data.status_code === 500) {
+                return message.error(data.message)
+            }
+        })
+    }
+
     return <Container title={label} subTitle={`${username}@${host}:${wd}`}>
         <Space>
             <Tooltip title="返回上一级目录">
@@ -203,6 +213,10 @@ export default function (props) {
             <Tooltip title="返回根目录">
                 <Button shape="circle" icon={<HomeOutlined/>} disabled={wd === "/"}
                         onClick={() => listDir("/")}/>
+            </Tooltip>
+            <Tooltip title={`启动 SSH 会话并将工作目录设置为：${wd}`}>
+                <Button shape="circle" icon={<CodeOutlined/>} disabled={tableLoading}
+                        onClick={() => SSHConnect(id, wd)}/>
             </Tooltip>
             <Tooltip title={`下载远程文件到: ${wd}`}>
                 <Button icon={<CloudDownloadOutlined/>} onClick={cloudDownloadFile}
