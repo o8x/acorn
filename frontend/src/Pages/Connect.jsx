@@ -212,7 +212,8 @@ export default class extends React.Component {
     }
 
     SSHConnect(item) {
-        window["go"]["backend"]["Connect"]["SSHConnect"](item.id).then(data => {
+        window.runtime.EventsEmit("open_ssh_session", [item.id], "")
+        window.runtime.EventsOnce("open_ssh_session_reply", data => {
             if (data.status_code === 500) {
                 return message.error(data.message)
             }

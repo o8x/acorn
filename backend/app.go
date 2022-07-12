@@ -85,6 +85,18 @@ func (c *App) Startup(ctx context.Context) {
 		runtime.EventsEmit(ctx, "ping_connect_reply", response.NoContent())
 	})
 
+	runtime.EventsOn(ctx, "open_ssh_session", func(data ...interface{}) {
+		for _, id := range data[0].([]interface{}) {
+			id, ok := id.(float64)
+			if !ok {
+				continue
+			}
+			c.connect.SSHConnect(int(id), data[1].(string))
+		}
+
+		runtime.EventsEmit(ctx, "open_ssh_session_reply", response.NoContent())
+	})
+
 	runtime.EventsOn(ctx, "open_local_console", func(data ...interface{}) {
 		runtime.EventsEmit(ctx, "open_local_console_reply", c.connect.OpenLocalConsole())
 	})
