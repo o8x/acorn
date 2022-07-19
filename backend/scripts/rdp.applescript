@@ -1,9 +1,9 @@
 set RDPPassword to "{password}" as String
 
-if RDPPassword = "" then
-    display dialog "远程连接密码不能为空。"
-    exit
-end if
+#if RDPPassword = "" then
+#    display dialog "远程连接密码不能为空。"
+#    exit
+#end if
 
 try
     tell application "Microsoft Remote Desktop"

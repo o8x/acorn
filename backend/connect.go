@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"encoding/base64"
 	"fmt"
+	"net"
 	"net/url"
 	"os"
 	"os/exec"
@@ -422,4 +423,62 @@ func (c *Connect) CreateScript(cmdline string, autoClose bool, p ConnectItem) (s
 	}
 
 	return f.Name(), nil
+}
+
+func (c *Connect) importRDPFile(ctx context.Context) *response.Response {
+	rdp, err := runtime.OpenFileDialog(ctx, runtime.OpenDialogOptions{
+		DefaultDirectory:     filepath.Join(os.Getenv("HOME"), "/Downloads"),
+		Title:                "选择RDP文件",
+		ShowHiddenFiles:      true,
+		CanCreateDirectories: true,
+		ResolvesAliases:      true,
+		Filters: []runtime.FileFilter{
+			{
+				DisplayName: "RDP文件 (*.rdp)",
+				Pattern:     "*.rdp",
+			},
+		},
+	})
+
+	if rdp = strings.TrimSpace(rdp); rdp == "" || err != nil {
+		return response.Error(fmt.Errorf("所选文件无效"))
+	}
+
+	if !utils.UnsafeFileExists(rdp) {
+		return response.Error(fmt.Errorf("%s文件不存在", rdp))
+	}
+
+	content, err := os.ReadFile(rdp)
+	if err != nil {
+		return response.Error(fmt.Errorf("%s文件解析失败: %s", rdp, err.Error()))
+	}
+
+	var (
+		host     = ""
+		port     = ""
+		username = ""
+		label    = ""
+	)
+
+	for _, it := range strings.Split(string(content), "\n") {
+		if strings.Contains(it, "full address:s:") {
+			host, port, _ = net.SplitHostPort(strings.TrimPrefix(it, "full address:s:"))
+		}
+
+		if strings.Contains(it, "username:s:") {
+			username = strings.TrimPrefix(it, "username:s:")
+		}
+	}
+
+	stmt, err := database.Get().Prepare(`insert into connect (type, label, username, port, host, params, auth_type) values (?, ?, ?, ?, ?, ?, ?)`)
+	if err != nil {
+		return response.Error(fmt.Errorf("SQL构造失败: %s", err.Error()))
+	}
+
+	_, label = filepath.Split(rdp)
+	if _, err := stmt.Exec("windows", strings.TrimSuffix(label, ".rdp"), username, port, host, "", "password"); err != nil {
+		return response.Error(fmt.Errorf("插入失败: %s", err.Error()))
+	}
+
+	return response.NoContent()
 }

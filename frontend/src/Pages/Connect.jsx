@@ -27,7 +27,7 @@ import linuxLogo from "../assets/images/linux-logo.png"
 import openwrtLogo from "../assets/images/openwrt-logo.png"
 import ubuntuLogo from "../assets/images/ubuntu-logo.png"
 import windowsLogo from "../assets/images/windows-logo.png"
-import {CodeOutlined, EditOutlined, InfoCircleOutlined, ReloadOutlined} from "@ant-design/icons"
+import {CodeOutlined, EditOutlined, FolderOpenOutlined, InfoCircleOutlined, ReloadOutlined} from "@ant-design/icons"
 
 function getLogoSrc(type) {
     switch (type.toLowerCase()) {
@@ -309,6 +309,38 @@ export default class extends React.Component {
         })
     }
 
+    makeRDPCmdline = (item, short) => {
+        if (item.type === "windows") {
+            let username = item.username
+            if (item.username.length > 13 && short) {
+                username = `${item.username.substr(0, 10)}...`
+            }
+
+            if (short) {
+                return `rdp:${username}@${item.host}:${item.port}`
+            }
+
+            return `open 'rdp:full address=s:${item.host}:${item.port}&username=s:${username}'`
+        }
+
+        let param = `${item.params} `
+        if (item.params !== "" && short) {
+            param = ""
+        }
+
+        let port = `-p ${item.port} `
+        if (parseInt(item.port) === 22) {
+            port = ""
+        }
+
+        let host = item.host
+        if (item.host.length > 22) {
+            host = `${item.host.substr(0, 22)}...`
+        }
+
+        return `ssh ${param}${port}${item.username}@${host}`
+    }
+
     columns = [
         {
             title: "连接信息",
@@ -325,7 +357,7 @@ export default class extends React.Component {
                             </a>
                             <a href="#" onClick={() => this.editConnectLabel(item)}> <EditOutlined/> </a>
                             <br/>
-                            {`ssh ${item.port === "22" ? "" : `-p ${item.port}`} ${item.username}@${item.host}`}
+                            {this.makeRDPCmdline(item, true)}
                         </span>
                     </Col>
                 </Row>
@@ -375,6 +407,18 @@ export default class extends React.Component {
         })
     }
 
+    importRDPFile = () => {
+        window.runtime.EventsEmit("import_rdp_file")
+        window.runtime.EventsOnce("import_rdp_file_replay", data => {
+            if (data.status_code === 500) {
+                return message.error(data.message)
+            }
+
+            this.loadList()
+            message.success("导入完成")
+        })
+    }
+
     render() {
         return <Container title="远程连接" subTitle="快速连接SSH和进行双向文件传输">
             <Form onFinish={this.AddSSHConnect}>
@@ -386,6 +430,10 @@ export default class extends React.Component {
                     </Tooltip>
                     <Tooltip title="新建 iTerm 本地会话">
                         <Button shape="circle" icon={<CodeOutlined/>} onClick={() => this.openLocalConsole("")}/>
+                    </Tooltip>
+                    <Tooltip title="导入rdp文件">
+                        <Button shape="circle" icon={<FolderOpenOutlined/>}
+                                onClick={() => this.importRDPFile()}/>
                     </Tooltip>
                     <Input
                         addonBefore="ssh"
@@ -414,9 +462,9 @@ export default class extends React.Component {
                 size="middle"
                 expandable={{
                     expandedRowRender: item => <p key={item.id * 100} style={{margin: 0}}>
-                        {`ssh ${item.params} ${item.port === "22" ? "" : `-p ${item.port}`} ${item.username}@${item.host}`}
+                        {this.makeRDPCmdline(item, false)}
                     </p>,
-                    rowExpandable: item => item.params !== "",
+                    rowExpandable: item => item.type === "windows" || item.params !== "" || item.username.length > 13 || item.host.length > 22,
                 }}
                 pagination={{
                     pageSize: this.state.pagesize,

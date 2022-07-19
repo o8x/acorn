@@ -260,4 +260,8 @@ func (c *App) Startup(ctx context.Context) {
 			c.connect.CloudDownload(int(id), data[1].(string), data[2].(string)),
 		)
 	})
+
+	runtime.EventsOn(ctx, "import_rdp_file", func(data ...interface{}) {
+		runtime.EventsEmit(ctx, "import_rdp_file_replay", c.connect.importRDPFile(ctx))
+	})
 }
