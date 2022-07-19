@@ -67,9 +67,6 @@ export default class extends React.Component {
                     <Menu.Item key="3" icon={<CheckOutlined/>}>
                         <Link to="/tools/regtest">正则测试</Link>
                     </Menu.Item>
-                    <Menu.Item key="4" icon={<EditOutlined/>}>
-                        <Link to="/tools/hexedit">16进制编辑器</Link>
-                    </Menu.Item>
                     <Menu.SubMenu title="ASCII" key="5" icon={<BorderlessTableOutlined/>}>
                         <Menu.Item key="5.1" icon={<EyeOutlined/>}>
                             <Link to="/tools/ascii/visible">可见字符</Link>

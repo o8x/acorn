@@ -17,6 +17,7 @@ import (
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/utils"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"gopkg.in/yaml.v3"
 )
 
 //go:embed scripts/iterm2.applescript
@@ -51,7 +52,7 @@ type ConnectItem struct {
 	AuthType    string    `json:"auth_type"`
 	LastUseTime int       `json:"last_use_time"`
 	CreateTime  time.Time `json:"create_time"`
-	Workdir     string    `json:"workdir"`
+	Workdir     string    `json:"-" yaml:"-"`
 }
 
 func (c *Connect) SSHConnect(id int, workdir string) *response.Response {
@@ -481,4 +482,75 @@ func (c *Connect) importRDPFile(ctx context.Context) *response.Response {
 	}
 
 	return response.NoContent()
+}
+
+func (c Connect) GetAll(keyword string) (*[]ConnectItem, error) {
+	keywordSQL := ""
+	if keyword != "" {
+		wheres := []string{
+			fmt.Sprintf("host like '%%%s%%'", keyword),
+			fmt.Sprintf("username like '%%%s%%'", keyword),
+			fmt.Sprintf("label like '%%%s%%'", keyword),
+		}
+
+		keywordSQL = fmt.Sprintf("where %s", strings.Join(wheres, " or "))
+	}
+
+	rows, err := database.Get().Query(fmt.Sprintf(`select * from connect %s order by last_use_timestamp = 0 desc, last_use_timestamp desc`, keywordSQL))
+	if err != nil {
+		return nil, err
+	}
+
+	var items []ConnectItem
+	for rows.Next() {
+		p := ConnectItem{}
+		err := rows.Scan(&p.ID, &p.Type, &p.Label, &p.UserName, &p.Password, &p.Port, &p.Host, &p.PrivateKey, &p.Params, &p.AuthType, &p.LastUseTime, &p.CreateTime)
+		if err != nil {
+			continue
+		}
+		items = append(items, p)
+	}
+
+	return &items, nil
+}
+
+func (c Connect) ExportAll(ctx context.Context) {
+	dir, err := runtime.OpenDirectoryDialog(ctx, runtime.OpenDialogOptions{
+		DefaultDirectory:     filepath.Join(os.Getenv("HOME"), "/Downloads"),
+		Title:                "选择导出目录",
+		ShowHiddenFiles:      true,
+		CanCreateDirectories: true,
+		ResolvesAliases:      true,
+	})
+	if dir = strings.TrimSpace(dir); dir == "" || err != nil {
+		utils.WarnMessage(ctx, "所选目录无效")
+		return
+	}
+	filename := filepath.Join(dir, "acorn.yaml")
+
+	if utils.UnsafeFileExists(filename) {
+		if !utils.ConfirmMessage(ctx, fmt.Sprintf("文件 %s 已存在，是否覆盖", filename)) {
+			utils.Message(ctx, "导出已取消")
+			return
+		}
+	}
+
+	connects, err := c.GetAll("")
+	if err != nil {
+		utils.WarnMessage(ctx, fmt.Sprintf("导出失败:%s", err.Error()))
+		return
+	}
+
+	byaml, err := yaml.Marshal(connects)
+	if err != nil {
+		utils.WarnMessage(ctx, fmt.Sprintf("构建yaml失败:%s", err.Error()))
+		return
+	}
+
+	if err = os.WriteFile(filename, byaml, 0777); err != nil {
+		utils.WarnMessage(ctx, fmt.Sprintf("保存失败:%s", err.Error()))
+		return
+	}
+
+	utils.Message(ctx, fmt.Sprintf("导出完成：%s", filename))
 }

@@ -3,19 +3,12 @@ package main
 import (
 	"context"
 	"embed"
-	"fmt"
-	"os"
-	"path/filepath"
-
-	"github.com/wailsapp/wails/v2"
-	"github.com/wailsapp/wails/v2/pkg/options"
-	"github.com/wailsapp/wails/v2/pkg/options/mac"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
-
 	"github.com/o8x/acorn/backend"
 	"github.com/o8x/acorn/backend/controller"
-	"github.com/o8x/acorn/backend/database"
-	"github.com/o8x/acorn/backend/utils"
+	"github.com/wailsapp/wails/v2"
+	"github.com/wailsapp/wails/v2/pkg/menu"
+	"github.com/wailsapp/wails/v2/pkg/options"
+	"github.com/wailsapp/wails/v2/pkg/options/mac"
 )
 
 //go:embed frontend/dist
@@ -24,15 +17,14 @@ var assets embed.FS
 //go:embed build/appicon.png
 var icon []byte
 
-var (
-	DefaultFileName = filepath.Join(os.Getenv("HOME"), ".config", "acorn", "acorn.sqlite")
-)
-
 func main() {
 	conn := backend.NewConnect()
 	app := backend.NewApp()
 	transfer := controller.NewTransfer()
 	tools := controller.NewTools()
+	defaultMenu := menu.NewMenu()
+	defaultMenu.Append(menu.AppMenu())
+	defaultMenu.Append(menu.EditMenu())
 
 	err := wails.Run(&options.App{
 		Title:         "",
@@ -41,28 +33,10 @@ func main() {
 		Assets:        assets,
 		DisableResize: false,
 		Frameless:     false,
+		Menu:          defaultMenu,
 		OnStartup: func(ctx context.Context) {
-			if !utils.UnsafeFileExists(DefaultFileName) {
-				if err := database.AutoCreateDB(DefaultFileName); err != nil {
-					_, _ = runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
-						Type:    runtime.ErrorDialog,
-						Title:   "启动错误",
-						Message: fmt.Sprintf(`数据库%s初始化失败:  %s`, DefaultFileName, err.Error()),
-					})
-					runtime.Quit(ctx)
-				}
-			}
-
-			if err := database.Init(DefaultFileName); err != nil {
-				_, _ = runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
-					Type:    runtime.ErrorDialog,
-					Title:   "启动错误",
-					Message: fmt.Sprintf(`数据库%s连接失败:  %s`, DefaultFileName, err.Error()),
-				})
-				runtime.Quit(ctx)
-			}
-
-			app.Startup(ctx)
+			app.OnStartup(ctx, defaultMenu)
+			app.RegisterRouter(ctx)
 		},
 		Bind: []interface{}{
 			conn,

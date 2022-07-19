@@ -4,12 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/o8x/acorn/backend/database"
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/ssh"
+	"github.com/o8x/acorn/backend/utils"
+	"github.com/wailsapp/wails/v2/pkg/menu"
+	"github.com/wailsapp/wails/v2/pkg/menu/keys"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
@@ -24,7 +29,46 @@ func NewApp() *App {
 	}
 }
 
-func (c *App) Startup(ctx context.Context) {
+var (
+	DefaultFileName = filepath.Join(os.Getenv("HOME"), ".config", "acorn", "acorn.sqlite")
+)
+
+func (c *App) OnStartup(ctx context.Context, defaultMenu *menu.Menu) {
+	if !utils.UnsafeFileExists(DefaultFileName) {
+		if err := database.AutoCreateDB(DefaultFileName); err != nil {
+			_, _ = runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
+				Type:    runtime.ErrorDialog,
+				Title:   "启动错误",
+				Message: fmt.Sprintf(`数据库%s初始化失败:  %s`, DefaultFileName, err.Error()),
+			})
+			runtime.Quit(ctx)
+		}
+	}
+
+	if err := database.Init(DefaultFileName); err != nil {
+		_, _ = runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
+			Type:    runtime.ErrorDialog,
+			Title:   "启动错误",
+			Message: fmt.Sprintf(`数据库%s连接失败:  %s`, DefaultFileName, err.Error()),
+		})
+		runtime.Quit(ctx)
+	}
+
+	FileMenu := defaultMenu.AddSubmenu("Setting Manage")
+	FileMenu.AddText("Export Connects To Yaml", keys.CmdOrCtrl("o"), func(data *menu.CallbackData) {
+		c.connect.ExportAll(ctx)
+	})
+	FileMenu.AddText("Import Connects From Yaml", keys.CmdOrCtrl("i"), func(data *menu.CallbackData) {
+		utils.Message(ctx, "尚未实现")
+	})
+
+	FileMenu.AddSeparator()
+
+	runtime.MenuSetApplicationMenu(ctx, defaultMenu)
+	runtime.MenuUpdateApplicationMenu(ctx)
+}
+
+func (c *App) RegisterRouter(ctx context.Context) {
 	c.ctx = ctx
 
 	runtime.EventsOn(ctx, "delete_connect", func(data ...interface{}) {
@@ -162,29 +206,13 @@ func (c *App) Startup(ctx context.Context) {
 	runtime.EventsOn(ctx, "get_connects", func(data ...interface{}) {
 		keyword := ""
 		if len(data) > 0 && data[0] != nil {
-			wheres := []string{
-				fmt.Sprintf("host like '%%%s%%'", data[0]),
-				fmt.Sprintf("username like '%%%s%%'", data[0]),
-				fmt.Sprintf("label like '%%%s%%'", data[0]),
-			}
-
-			keyword = fmt.Sprintf("where %s", strings.Join(wheres, " or "))
+			keyword = data[0].(string)
 		}
 
-		rows, err := database.Get().Query(fmt.Sprintf(`select * from connect %s order by last_use_timestamp = 0 desc, last_use_timestamp desc`, keyword))
+		items, err := c.connect.GetAll(keyword)
 		if err != nil {
 			runtime.EventsEmit(ctx, "set_connects", response.Error(err))
 			return
-		}
-
-		var items []ConnectItem
-		for rows.Next() {
-			p := ConnectItem{}
-			err := rows.Scan(&p.ID, &p.Type, &p.Label, &p.UserName, &p.Password, &p.Port, &p.Host, &p.PrivateKey, &p.Params, &p.AuthType, &p.LastUseTime, &p.CreateTime)
-			if err != nil {
-				continue
-			}
-			items = append(items, p)
 		}
 
 		runtime.EventsEmit(ctx, "set_connects", response.OK(items))

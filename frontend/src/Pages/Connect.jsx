@@ -27,7 +27,14 @@ import linuxLogo from "../assets/images/linux-logo.png"
 import openwrtLogo from "../assets/images/openwrt-logo.png"
 import ubuntuLogo from "../assets/images/ubuntu-logo.png"
 import windowsLogo from "../assets/images/windows-logo.png"
-import {CodeOutlined, EditOutlined, FolderOpenOutlined, InfoCircleOutlined, ReloadOutlined} from "@ant-design/icons"
+import {
+    CodeOutlined,
+    EditOutlined,
+    FolderOpenOutlined,
+    InfoCircleOutlined,
+    ReloadOutlined,
+    SaveOutlined,
+} from "@ant-design/icons"
 
 function getLogoSrc(type) {
     switch (type.toLowerCase()) {

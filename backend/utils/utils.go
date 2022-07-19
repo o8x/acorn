@@ -2,9 +2,12 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"math/big"
 	"os"
 	"os/exec"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 func WriteTempFile(content string) (*os.File, error) {
@@ -83,4 +86,30 @@ func Base58Decoding(str string) string { //Base58解码
 		ret.Add(ret, big.NewInt(int64(index)))     //相加
 	}
 	return string(ret.Bytes())
+}
+
+func Message(ctx context.Context, message string) {
+	_, _ = runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
+		Type:    runtime.InfoDialog,
+		Title:   "提示",
+		Message: message,
+	})
+}
+
+func WarnMessage(ctx context.Context, message string) {
+	_, _ = runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
+		Type:    runtime.WarningDialog,
+		Title:   "警告",
+		Message: message,
+	})
+}
+
+func ConfirmMessage(ctx context.Context, message string) bool {
+	selection, err := runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
+		Title:         message,
+		Buttons:       []string{"确认", "取消"},
+		DefaultButton: "确认",
+	})
+
+	return err != nil || selection == "确认"
 }
