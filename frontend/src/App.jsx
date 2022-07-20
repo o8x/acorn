@@ -11,7 +11,7 @@ import {
     CreditCardOutlined,
     EditOutlined,
     EyeOutlined,
-    FieldStringOutlined,
+    FieldStringOutlined, FieldTimeOutlined,
     FormatPainterOutlined,
     FunctionOutlined,
     ToolOutlined,
@@ -27,6 +27,7 @@ import TextCodec from "./Pages/TextCodec"
 import MakePassword from "./Pages/MakePassword"
 import Timestamp from "./Pages/Timestamp"
 import ASCIITable from "./Pages/ASCIITable"
+import Clock from "./Pages/Clock"
 
 const {Content, Sider} = Layout
 
@@ -55,6 +56,9 @@ export default class extends React.Component {
             }}>
                 <div className="logo" data-wails-drag onClick={() => this.setCollapse(!collapsed)}></div>
                 <Menu theme="dark" defaultSelectedKeys={this.state.selected} mode="inline">
+                    <Menu.Item key="clock" icon={<FieldTimeOutlined />}>
+                        <Link to="/tools/clock">时钟</Link>
+                    </Menu.Item>
                     <Menu.Item key="0" icon={<ApartmentOutlined/>}>
                         <Link to="/">连接</Link>
                     </Menu.Item>
@@ -100,6 +104,7 @@ export default class extends React.Component {
                         <Route path="/tools/makepass" element={<MakePassword setCollapse={this.setCollapse}/>}/>}/>
                         <Route path="/tools/timestamp" element={<Timestamp setCollapse={this.setCollapse}/>}/>}/>
                         <Route path="/tools/ascii/:type" element={<ASCIITable setCollapse={this.setCollapse}/>}/>}/>
+                        <Route path="/tools/clock/" element={<Clock setCollapse={this.setCollapse}/>}/>}/>
                         <Route path="*" element={<Connect/>}/>
                     </Routes>
                 </Content>
