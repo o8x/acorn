@@ -129,6 +129,18 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		runtime.EventsEmit(ctx, "ping_connect_reply", response.NoContent())
 	})
 
+	runtime.EventsOn(ctx, "top_connect", func(data ...interface{}) {
+		for _, id := range data[0].([]interface{}) {
+			id, ok := id.(float64)
+			if !ok {
+				continue
+			}
+			c.connect.TopConnect(int(id))
+		}
+
+		runtime.EventsEmit(ctx, "top_connect_reply", response.NoContent())
+	})
+
 	runtime.EventsOn(ctx, "open_ssh_session", func(data ...interface{}) {
 		for _, id := range data[0].([]interface{}) {
 			id, ok := id.(float64)

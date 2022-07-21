@@ -218,6 +218,15 @@ export default class extends React.Component {
         })
     }
 
+    top = (item) => {
+        window.runtime.EventsEmit("top_connect", [item.id])
+        window.runtime.EventsOnce("top_connect_reply", data => {
+            if (data.status_code === 500) {
+                return message.error(data.message)
+            }
+        })
+    }
+
     SSHConnect(item) {
         window.runtime.EventsEmit("open_ssh_session", [item.id], "")
         window.runtime.EventsOnce("open_ssh_session_reply", data => {
@@ -378,6 +387,11 @@ export default class extends React.Component {
             render: (_, item) => {
                 const isNT = item.type === "windows"
                 return (<Space size="middle">
+                    {
+                        isNT ?
+                            <a href="#" disabled>监控</a> :
+                            <a key="list-top" onClick={() => this.top(item)}>监控</a>
+                    }
                     <a key="list-conn" onClick={() => this.SSHConnect(item)}>连接</a>
                     {
                         item.params.indexOf("ProxyCommand") !== -1 || isNT ?
@@ -448,7 +462,7 @@ export default class extends React.Component {
                         onChange={this.handleAddInputOnChange}
                         allowClear={true}
                         placeholder="[-p 2233] [-o xx] root@example.com"
-                        style={{width: 350}}
+                        style={{width: 450}}
                         suffix={<Tooltip title="将会自动解析 ssh 参数">
                             <InfoCircleOutlined/>
                         </Tooltip>}

@@ -82,6 +82,28 @@ func (c *Connect) SSHConnect(id int, workdir string) *response.Response {
 	return response.NoContent()
 }
 
+func (c *Connect) TopConnect(id int) *response.Response {
+	var p ConnectItem
+	if err := GetInfoByID(id, &p); err != nil {
+		return response.Error(err)
+	}
+
+	if err := c.updateLastUseTime(id); err != nil {
+		return response.Error(err)
+	}
+
+	filename, err := c.makeTTYScript("htop -d 10 || top -d 1", p)
+	if err != nil {
+		return response.Error(err)
+	}
+
+	if err = exec.Command("osascript", filename).Start(); err != nil {
+		return response.Error(err)
+	}
+
+	return response.NoContent()
+}
+
 func CreateRDPFile(it ConnectItem) (string, error) {
 	f, err := os.CreateTemp("", "*.rdp")
 	if err != nil {
@@ -383,6 +405,11 @@ func (c *Connect) updateLastUseTime(id int) error {
 
 func (c *Connect) makeSSHScript(command string, p ConnectItem) (string, error) {
 	cmdline := fmt.Sprintf(`%s {params} -p %d %s@%s`, command, p.Port, p.UserName, p.Host)
+	return c.CreateScript(cmdline, false, p)
+}
+
+func (c *Connect) makeTTYScript(command string, p ConnectItem) (string, error) {
+	cmdline := fmt.Sprintf(`ssh {params} -t -p %d %s@%s '%s'`, p.Port, p.UserName, p.Host, command)
 	return c.CreateScript(cmdline, false, p)
 }
 
