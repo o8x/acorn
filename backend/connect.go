@@ -225,16 +225,26 @@ func (c *Connect) SCPUpload(ctx context.Context, id int, dir string) *response.R
 		return response.Error(err)
 	}
 
-	sFile, err := runtime.OpenFileDialog(ctx, runtime.OpenDialogOptions{
-		Title:                "选择需要上传的文件",
-		ShowHiddenFiles:      true,
-		CanCreateDirectories: true,
+	sFiles, err := runtime.OpenMultipleFilesDialog(ctx, runtime.OpenDialogOptions{
+		Title:                      "选择需要上传的文件",
+		ShowHiddenFiles:            true,
+		CanCreateDirectories:       true,
+		ResolvesAliases:            true,
+		TreatPackagesAsDirectories: true,
 	})
-	if sFile = strings.TrimSpace(sFile); sFile == "" || err != nil {
-		return response.Error(fmt.Errorf("所选文件无效"))
+	if err != nil {
+		return response.NoContent()
 	}
 
-	script, err := c.MakeSCPUploadCommand(sFile, dir, p)
+	if sFiles, err = utils.FilesFilter(sFiles); err != nil {
+		return response.Error(err)
+	}
+
+	if len(sFiles) == 0 {
+		return response.Warn("未选择有效文件")
+	}
+
+	script, err := c.MakeSCPUploadCommand(strings.Join(sFiles, " "), dir, p)
 	if err != nil {
 		return response.Error(err)
 	}
@@ -387,7 +397,7 @@ func (c *Connect) MakeSCPDownloadCommand(from, to string, p ConnectItem) (string
 }
 
 func (c *Connect) MakeSCPUploadCommand(from, to string, p ConnectItem) (string, error) {
-	cmdline := fmt.Sprintf(`scp -r {params} -P %d '%s' '%s@%s:%s'`, p.Port, from, p.UserName, p.Host, to)
+	cmdline := fmt.Sprintf(`scp -r {params} -P %d %s '%s@%s:%s'`, p.Port, from, p.UserName, p.Host, to)
 	return c.CreateScript(cmdline, false, p)
 }
 
@@ -417,6 +427,8 @@ func (c *Connect) CreateScript(cmdline string, autoClose bool, p ConnectItem) (s
 	script = strings.ReplaceAll(script, "{commands}", cmdline)
 	script = strings.ReplaceAll(script, "{auto_close}", fmt.Sprintf("%v", autoClose))
 	script = strings.ReplaceAll(script, "{workdir}", p.Workdir)
+
+	fmt.Println(script)
 
 	f, err := utils.WriteTempFileAutoClose(script)
 	if err != nil {

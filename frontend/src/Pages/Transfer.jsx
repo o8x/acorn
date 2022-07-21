@@ -78,7 +78,7 @@ export default function (props) {
                 return message.error(`上传到${wd}失败: ${data.message}`)
             }
 
-            message.success(`正在将文件上传至： ${wd}`)
+            message.success(`正在将文件上传至： ${wd}，无法访问的文件将被忽略`)
         })
     }
 

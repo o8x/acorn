@@ -3,9 +3,12 @@ package utils
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"math/big"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -112,4 +115,61 @@ func ConfirmMessage(ctx context.Context, message string) bool {
 	})
 
 	return err != nil || selection == "确认"
+}
+
+func FilesFilter(list []string) ([]string, error) {
+	if len(list) == 1 {
+		return list, nil
+	}
+
+	var files = map[string]*[]string{}
+	var dirs []string
+	for _, it := range list {
+		stat, err := os.Stat(it)
+		if err == os.ErrNotExist {
+			continue
+		}
+
+		// 如果是目录名，插入到目录list中
+		if stat.IsDir() {
+			dirs = append(dirs, it)
+			continue
+		}
+
+		// 分离文件名和目录名，分类到map中
+		dir, name := filepath.Split(it)
+		if list, ok := files[dir]; ok {
+			*list = append(*list, name)
+		} else {
+			files[dir] = &[]string{name}
+		}
+	}
+
+	var temp = map[string]interface{}{}
+	for prefix, files := range files {
+		exclude := false
+		for _, dir := range dirs {
+			// 如果分离出的文件目录名包含了一个已经存在的目录名
+			// 就忽略掉这个目录下的所有文件，只上传目录
+			if strings.Contains(prefix, dir) {
+				exclude = true
+				temp[dir] = nil
+				break
+			}
+		}
+
+		if exclude {
+			continue
+		}
+
+		temp[fmt.Sprintf("'%s'{'%s'}", prefix, strings.Join(*files, "','"))] = nil
+	}
+
+	// 去重加文件存在验证
+	var uploadFiles []string
+	for k := range temp {
+		uploadFiles = append(uploadFiles, k)
+	}
+
+	return uploadFiles, nil
 }
