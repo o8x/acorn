@@ -1,15 +1,15 @@
 import React, {useEffect, useState} from "react"
 import Container from "./Container"
-import SyntaxHighlighter from "react-syntax-highlighter"
-import {arta} from "react-syntax-highlighter/dist/esm/styles/hljs"
-import {Col, Row} from "antd"
-import TextArea from "antd/es/input/TextArea"
+import {message} from "antd"
 import "./JsonFormat.css"
+import CodeMirror from "@uiw/react-codemirror"
+import {xcodeLight} from "@uiw/codemirror-theme-xcode"
+import {json} from "@codemirror/lang-json"
 
 
 export default function (props) {
     const [code, setCode] = useState("")
-    const [codeString, setCodeString] = useState("")
+    const [codeString, setCodeString] = useState(`{"message":"Welcome to Acorn Json Formatter","status_code":200}`)
 
     useEffect(() => {
         if (codeString === "") {
@@ -23,7 +23,7 @@ export default function (props) {
             setCodeString(res)
             setCode(res)
         } catch (e) {
-            setCode(e.message)
+            message.error(e.message)
         }
     }, [codeString])
 
@@ -31,16 +31,17 @@ export default function (props) {
         props.setCollapse(true)
     }, [])
 
-    return <Container  title="JSON格式化" subTitle="高亮和格式化标准 json 数据">
-        <Row gutter={24} className="json-formater">
-            <Col span={11}>
-                <TextArea value={codeString} onChange={e => setCodeString(e.target.value)} placeholder="原始JSON文本"/>
-            </Col>
-            <Col span={13}>
-                <SyntaxHighlighter showLineNumbers={true} language="json" style={arta} className="syntax-highlighter">
-                    {code}
-                </SyntaxHighlighter>
-            </Col>
-        </Row>
+    return <Container title="JSON格式化" subTitle="高亮和即时格式化标准 json 数据">
+        <div className="json-formatter">
+            <CodeMirror
+                value={code}
+                height="100%"
+                theme={xcodeLight}
+                extensions={[json()]}
+                onChange={(value, _) => {
+                    setCodeString(value)
+                }}
+            />
+        </div>
     </Container>
 }
