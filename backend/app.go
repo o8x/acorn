@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/o8x/acorn/backend/controller"
 	"github.com/o8x/acorn/backend/database"
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/ssh"
@@ -21,11 +22,13 @@ import (
 type App struct {
 	ctx     context.Context
 	connect *Connect
+	tags    *controller.Tags
 }
 
 func NewApp() *App {
 	return &App{
 		connect: NewConnect(),
+		tags:    controller.NewTags(),
 	}
 }
 
@@ -103,13 +106,13 @@ func (c *App) RegisterRouter(ctx context.Context) {
 	runtime.EventsOn(ctx, "add_connect", func(data ...interface{}) {
 		item := data[0].(map[string]interface{})
 
-		stmt, err := database.Get().Prepare(`insert into connect (type, label, username, port, host, params, auth_type) values (?, ?, ?, ?, ?, ?, ?)`)
+		stmt, err := database.Get().Prepare(`insert into connect (type, label, username, port, host, params, auth_type, tags) values (?, ?, ?, ?, ?, ?, ?, ?)`)
 		if err != nil {
 			runtime.EventsEmit(ctx, "add_connect_reply", response.Error(err))
 			return
 		}
 
-		if _, err := stmt.Exec(item["type"], item["label"], item["username"], item["port"], item["host"], item["params"], item["auth_type"]); err != nil {
+		if _, err := stmt.Exec(item["type"], item["label"], item["username"], item["port"], item["host"], item["params"], item["auth_type"], "[]"); err != nil {
 			runtime.EventsEmit(ctx, "add_connect_reply", response.Error(err))
 			return
 		}
@@ -168,6 +171,29 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		if err := json.Unmarshal(marshal, &it); err != nil {
 			runtime.EventsEmit(ctx, "edit_connect_reply", response.Error(err))
 			return
+		}
+
+		// 处理TAG
+		var tags []interface{}
+		for _, t := range it.Tags {
+			if i, ok := t.(float64); ok {
+				tags = append(tags, i)
+			}
+
+			if i, ok := t.(string); ok {
+				id, err := c.tags.AddOne(i)
+				if err != nil {
+					continue
+				}
+
+				tags = append(tags, id)
+			}
+		}
+
+		bs, _ := json.Marshal(tags)
+		it.TagsString = string(bs)
+		if it.TagsString == "null" {
+			it.TagsString = "[]"
 		}
 
 		if it.Type == "linux" {
@@ -303,5 +329,15 @@ func (c *App) RegisterRouter(ctx context.Context) {
 
 	runtime.EventsOn(ctx, "import_rdp_file", func(data ...interface{}) {
 		runtime.EventsEmit(ctx, "import_rdp_file_replay", c.connect.importRDPFile(ctx))
+	})
+
+	runtime.EventsOn(ctx, "get_tags", func(data ...interface{}) {
+		all, err := c.tags.GetAll()
+		if err != nil {
+			runtime.EventsEmit(ctx, "get_tags_replay", response.Error(err))
+			return
+		}
+
+		runtime.EventsEmit(ctx, "get_tags_replay", response.OK(all))
 	})
 }

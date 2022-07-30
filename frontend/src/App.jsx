@@ -9,9 +9,9 @@ import {
     ClockCircleOutlined,
     ControlOutlined,
     CreditCardOutlined,
-    EditOutlined,
     EyeOutlined,
-    FieldStringOutlined, FieldTimeOutlined,
+    FieldStringOutlined,
+    FieldTimeOutlined,
     FormatPainterOutlined,
     FunctionOutlined,
     ToolOutlined,
@@ -56,7 +56,7 @@ export default class extends React.Component {
             }}>
                 <div className="logo" data-wails-drag onClick={() => this.setCollapse(!collapsed)}></div>
                 <Menu theme="dark" defaultSelectedKeys={this.state.selected} mode="inline">
-                    <Menu.Item key="clock" icon={<FieldTimeOutlined />}>
+                    <Menu.Item key="clock" icon={<FieldTimeOutlined/>}>
                         <Link to="/tools/clock">时钟</Link>
                     </Menu.Item>
                     <Menu.Item key="0" icon={<ApartmentOutlined/>}>
@@ -95,17 +95,39 @@ export default class extends React.Component {
             <Layout className="site-layout">
                 <Content>
                     <Routes>
-                        <Route path="/" element={<Connect/>}/>
-                        <Route path="/transfer/:id" element={<Transfer setCollapse={this.setCollapse}/>}/>
-                        <Route path="/tools/radix" element={<TransRadix setCollapse={this.setCollapse}/>}/>}/>
-                        <Route path="/tools/json" element={<JsonFormat setCollapse={this.setCollapse}/>}/>}/>
-                        <Route path="/tools/regtest" element={<RegTest setCollapse={this.setCollapse}/>}/>}/>
-                        <Route path="/tools/textcodec" element={<TextCodec setCollapse={this.setCollapse}/>}/>}/>
-                        <Route path="/tools/makepass" element={<MakePassword setCollapse={this.setCollapse}/>}/>}/>
-                        <Route path="/tools/timestamp" element={<Timestamp setCollapse={this.setCollapse}/>}/>}/>
-                        <Route path="/tools/ascii/:type" element={<ASCIITable setCollapse={this.setCollapse}/>}/>}/>
-                        <Route path="/tools/clock/" element={<Clock setCollapse={this.setCollapse}/>}/>}/>
-                        <Route path="*" element={<Connect/>}/>
+                        <Route path="/transfer/:id"
+                               element={<Transfer collapsed={collapsed} setCollapse={this.setCollapse}/>}
+                        />
+                        <Route path="/tools/radix"
+                               element={<TransRadix collapsed={collapsed} setCollapse={this.setCollapse}/>}/>}
+                        />
+                        <Route path="/tools/json"
+                               element={<JsonFormat collapsed={collapsed} setCollapse={this.setCollapse}/>}/>}
+                        />
+                        <Route path="/tools/regtest"
+                               element={<RegTest collapsed={collapsed} setCollapse={this.setCollapse}/>}/>}
+                        />
+                        <Route path="/tools/textcodec"
+                               element={<TextCodec collapsed={collapsed} setCollapse={this.setCollapse}/>}/>}
+                        />
+                        <Route path="/tools/makepass"
+                               element={<MakePassword collapsed={collapsed} setCollapse={this.setCollapse}/>}/>}
+                        />
+                        <Route path="/tools/timestamp"
+                               element={<Timestamp collapsed={collapsed} setCollapse={this.setCollapse}/>}/>}
+                        />
+                        <Route path="/tools/ascii/:type"
+                               element={<ASCIITable collapsed={collapsed} setCollapse={this.setCollapse}/>}/>}
+                        />
+                        <Route path="/tools/clock/"
+                               element={<Clock collapsed={collapsed} setCollapse={this.setCollapse}/>}/>}
+                        />
+                        <Route path="/"
+                               element={<Connect collapsed={collapsed} setCollapse={this.setCollapse}/>}
+                        />
+                        <Route path="*"
+                               element={<Connect collapsed={collapsed} setCollapse={this.setCollapse}/>}
+                        />
                     </Routes>
                 </Content>
             </Layout>

@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/url"
@@ -49,10 +50,12 @@ type ConnectItem struct {
 	// 连接参数 ssh -o
 	Params string `json:"params"`
 	// 鉴权类型，private_key | password
-	AuthType    string    `json:"auth_type"`
-	LastUseTime int       `json:"last_use_time"`
-	CreateTime  time.Time `json:"create_time"`
-	Workdir     string    `json:"-" yaml:"-"`
+	AuthType    string        `json:"auth_type"`
+	LastUseTime int           `json:"last_use_time"`
+	CreateTime  time.Time     `json:"create_time"`
+	Workdir     string        `json:"-" yaml:"-"`
+	Tags        []interface{} `json:"tags"`
+	TagsString  string        `json:"tags_string"`
 }
 
 func (c *Connect) SSHConnect(id int, workdir string) *response.Response {
@@ -354,12 +357,12 @@ func (c *Connect) EditConnect(item ConnectItem) error {
 		return err
 	}
 
-	stmt, err := database.Get().Prepare("update connect set type = ?, label = ?, username = ?, password = ?, port = ?, host = ?, private_key = ?, params = ?, auth_type = ? where id = ?")
+	stmt, err := database.Get().Prepare("update connect set type = ?, label = ?, username = ?, password = ?, port = ?, host = ?, private_key = ?, params = ?, auth_type = ?, tags = ? where id = ?")
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(item.Type, item.Label, item.UserName, item.Password, item.Port, item.Host, item.PrivateKey, item.Params, item.AuthType, item.ID)
+	_, err = stmt.Exec(item.Type, item.Label, item.UserName, item.Password, item.Port, item.Host, item.PrivateKey, item.Params, item.AuthType, item.TagsString, item.ID)
 	if err != nil {
 		return err
 	}
@@ -391,7 +394,7 @@ func (c *Connect) SSHCopyID(id int) *response.Response {
 
 func GetInfoByID(id int, p *ConnectItem) error {
 	return database.Get().QueryRow("select * from connect where id = ? limit 1", id).
-		Scan(&p.ID, &p.Type, &p.Label, &p.UserName, &p.Password, &p.Port, &p.Host, &p.PrivateKey, &p.Params, &p.AuthType, &p.LastUseTime, &p.CreateTime)
+		Scan(&p.ID, &p.Type, &p.Label, &p.UserName, &p.Password, &p.Port, &p.Host, &p.PrivateKey, &p.Params, &p.AuthType, &p.LastUseTime, &p.CreateTime, &p.TagsString)
 }
 
 func (c *Connect) updateLastUseTime(id int) error {
@@ -543,10 +546,11 @@ func (c Connect) GetAll(keyword string) (*[]ConnectItem, error) {
 	var items []ConnectItem
 	for rows.Next() {
 		p := ConnectItem{}
-		err := rows.Scan(&p.ID, &p.Type, &p.Label, &p.UserName, &p.Password, &p.Port, &p.Host, &p.PrivateKey, &p.Params, &p.AuthType, &p.LastUseTime, &p.CreateTime)
+		err := rows.Scan(&p.ID, &p.Type, &p.Label, &p.UserName, &p.Password, &p.Port, &p.Host, &p.PrivateKey, &p.Params, &p.AuthType, &p.LastUseTime, &p.CreateTime, &p.TagsString)
 		if err != nil {
 			continue
 		}
+		_ = json.Unmarshal([]byte(p.TagsString), &p.Tags)
 		items = append(items, p)
 	}
 
