@@ -4,7 +4,11 @@ import pwd
 import stat
 import time
 
+
 def parse_mode(isdir, mode):
+    if mode == 0:
+        return ""
+
     switch = {
         "0": "---",
         "1": "--x",
@@ -43,19 +47,21 @@ for it in os.listdir(target):
     isdir = os.path.isdir(file)
     mode = parse_mode(isdir, stat.S_IMODE(st.st_mode))
     mtime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(st.st_mtime))
-    user = pwd.getpwuid(st.st_uid).pw_name
-    if not isdir:
-        if os.path.exists(file):
-            size = os.path.getsize(file)
-
-    files.append({
-        "name": it,
-        "isdir": isdir,
-        "size": size,
-        "mode": mode,
-        "mtime": mtime,
-        "user": user,
-    })
+    try:
+        user = pwd.getpwuid(st.st_uid).pw_name
+        if not isdir:
+            if os.path.exists(file):
+                size = os.path.getsize(file)
+        files.append({
+            "name": it,
+            "isdir": isdir,
+            "size": size,
+            "mode": mode,
+            "mtime": mtime,
+            "user": user,
+        })
+    finally:
+        pass
 
 print(json.dumps({
     "cwd": os.path.abspath(target),
