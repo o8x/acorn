@@ -3,6 +3,7 @@ package ssh
 import (
 	"bytes"
 	"crypto/sha1"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"time"
@@ -109,19 +110,44 @@ func (conn *Connection) OpenSession(retry bool) error {
 }
 
 func (conn *Connection) ExecPythonCode(py []byte) (*bytes.Buffer, error) {
-	buf := &bytes.Buffer{}
-	conn.session.Stdout = buf
-
 	hash := sha1.Sum(py)
-	cmd := fmt.Sprintf(`
-cat > /tmp/%x <<EOF
-%s
-EOF
-python3 /tmp/%x || python /tmp/%x`, hash, py, hash, hash)
-	if err := conn.session.Run(cmd); err != nil {
+	filename := fmt.Sprintf("/tmp/%x", hash)
+	buf, err := conn.WriteFile(filename, py)
+	if err != nil {
 		return nil, err
 	}
 
+	cmd := fmt.Sprintf(`python3 %s || python %s`, filename, filename)
+	if buf, err = conn.ExecShellCode(cmd); err != nil {
+		return nil, err
+	}
+
+	return buf, nil
+}
+
+func (conn *Connection) WriteFile(name string, content []byte) (*bytes.Buffer, error) {
+	b64 := base64.StdEncoding.EncodeToString(content)
+	buf, err := conn.ExecShellCode(fmt.Sprintf(`echo '%s' | base64 -d >%s`, b64, name))
+	if err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
+func (conn *Connection) ExecShellCode(code string) (*bytes.Buffer, error) {
+	if err := conn.OpenSession(true); err != nil {
+		return nil, nil
+	}
+
+	buf := &bytes.Buffer{}
+	conn.session.Stdout = buf
+
+	if err := conn.session.Run(code); err != nil {
+		return nil, err
+	}
+	fmt.Println("run code:", code, "output:", buf.String())
+
+	_ = conn.session.Close()
 	return buf, nil
 }
 

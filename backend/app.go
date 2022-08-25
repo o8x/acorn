@@ -210,10 +210,6 @@ func (c *App) RegisterRouter(ctx context.Context) {
 					return nil
 				}
 
-				if err := conn.OpenSession(true); err != nil {
-					return nil
-				}
-
 				if info, err := ssh.ProberOSInfo(conn); err == nil {
 					return info
 				}
@@ -277,11 +273,6 @@ func (c *App) RegisterRouter(ctx context.Context) {
 			return
 		}
 
-		if err := conn.OpenSession(true); err != nil {
-			runtime.EventsEmit(ctx, "list_dir_reply", response.Error(err))
-			return
-		}
-
 		list, err := ssh.ListRemoteDir(conn, data[1].(string))
 		if err != nil {
 			runtime.EventsEmit(ctx, "list_dir_reply", response.Error(err))
@@ -289,6 +280,44 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		}
 
 		runtime.EventsEmit(ctx, "list_dir_reply", response.OK(list))
+	})
+
+	runtime.EventsOn(ctx, "gen_script", func(data ...interface{}) {
+		var c ConnectItem
+
+		// 默认生成到 stdout.com.cn
+		if err := GetInfoByID(1, &c); err != nil {
+			runtime.EventsEmit(ctx, "gen_script_reply", response.Error(err))
+			return
+		}
+
+		conn := ssh.New(ssh.Connection{
+			Host:       c.Host,
+			User:       c.UserName,
+			Port:       c.Port,
+			Password:   c.Password,
+			AuthMethod: c.AuthType,
+		})
+
+		if err := conn.Connect(); err != nil {
+			runtime.EventsEmit(ctx, "gen_script_reply", response.Error(err))
+			return
+		}
+
+		filename := fmt.Sprintf("/srv/files/@%s.sh", data[0].(string))
+		if err := ssh.WriteFile(conn, filename, data[1].(string)); err != nil {
+			runtime.EventsEmit(ctx, "gen_script_reply", response.Error(err))
+			return
+		}
+
+		if _, err := conn.ExecShellCode("/srv/files/genhelp.sh"); err != nil {
+			runtime.EventsEmit(ctx, "gen_script_reply",
+				response.Warn(fmt.Sprintf("update help fails %s", err.Error())),
+			)
+			return
+		}
+
+		runtime.EventsEmit(ctx, "gen_script_reply", response.NoContent())
 	})
 
 	runtime.EventsOn(ctx, "download_files", func(data ...interface{}) {

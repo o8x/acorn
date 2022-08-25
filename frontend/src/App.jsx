@@ -9,6 +9,7 @@ import {
     ClockCircleOutlined,
     ControlOutlined,
     CreditCardOutlined,
+    EditOutlined,
     EyeOutlined,
     FieldStringOutlined,
     FieldTimeOutlined,
@@ -22,6 +23,7 @@ import Connect from "./Pages/Connect"
 import Transfer from "./Pages/Transfer"
 import TransRadix from "./Pages/TransRadix"
 import JsonFormat from "./Pages/JsonFormat"
+import ScriptEditor from "./Pages/ScriptEditor"
 import RegTest from "./Pages/RegTest"
 import TextCodec from "./Pages/TextCodec"
 import MakePassword from "./Pages/MakePassword"
@@ -64,6 +66,9 @@ export default class extends React.Component {
                     </Menu.Item>
                     <Menu.Item key="1" icon={<FieldStringOutlined/>}>
                         <Link to="/tools/textcodec">文本编解码</Link>
+                    </Menu.Item>
+                    <Menu.Item key="scripteditor" icon={<EditOutlined/>}>
+                        <Link to="/tools/scripteditor">脚本编辑器</Link>
                     </Menu.Item>
                     <Menu.Item key="2" icon={<FunctionOutlined/>}>
                         <Link to="/tools/radix">进制转换</Link>
@@ -121,6 +126,9 @@ export default class extends React.Component {
                         />
                         <Route path="/tools/clock/"
                                element={<Clock collapsed={collapsed} setCollapse={this.setCollapse}/>}/>}
+                        />
+                        <Route path="/tools/scripteditor/"
+                               element={<ScriptEditor collapsed={collapsed} setCollapse={this.setCollapse}/>}/>}
                         />
                         <Route path="/"
                                element={<Connect collapsed={collapsed} setCollapse={this.setCollapse}/>}

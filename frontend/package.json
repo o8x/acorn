@@ -10,6 +10,8 @@
     "dependencies": {
         "@ant-design/icons": "^4.7.0",
         "@codemirror/lang-json": "^6.0.0",
+        "@codemirror/language": "^6.2.1",
+        "@codemirror/legacy-modes": "^6.1.0",
         "@uiw/codemirror-theme-xcode": "^4.11.4",
         "@uiw/react-codemirror": "^4.11.4",
         "antd": "^4.20.4",

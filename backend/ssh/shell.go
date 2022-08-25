@@ -46,3 +46,8 @@ func ProberOSInfo(conn *Connection) (*OsRelease, error) {
 
 	return &osRelease, nil
 }
+
+func WriteFile(conn *Connection, name, content string) error {
+	_, err := conn.WriteFile(name, []byte(content))
+	return err
+}
