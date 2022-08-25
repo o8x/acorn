@@ -15,6 +15,7 @@ import {
     FieldTimeOutlined,
     FormatPainterOutlined,
     FunctionOutlined,
+    HomeOutlined,
     ToolOutlined,
 } from "@ant-design/icons"
 
@@ -30,12 +31,13 @@ import MakePassword from "./Pages/MakePassword"
 import Timestamp from "./Pages/Timestamp"
 import ASCIITable from "./Pages/ASCIITable"
 import Clock from "./Pages/Clock"
+import Home from "./Pages/Home"
 
 const {Content, Sider} = Layout
 
 export default class extends React.Component {
     state = {
-        collapsed: false,
+        collapsed: true,
         selected: "0",
     }
 
@@ -58,8 +60,8 @@ export default class extends React.Component {
             }}>
                 <div className="logo" data-wails-drag onClick={() => this.setCollapse(!collapsed)}></div>
                 <Menu theme="dark" defaultSelectedKeys={this.state.selected} mode="inline">
-                    <Menu.Item key="clock" icon={<FieldTimeOutlined/>}>
-                        <Link to="/tools/clock">时钟</Link>
+                    <Menu.Item key="home" icon={<HomeOutlined/>}>
+                        <Link to="/home">主页</Link>
                     </Menu.Item>
                     <Menu.Item key="0" icon={<ApartmentOutlined/>}>
                         <Link to="/">连接</Link>
@@ -75,6 +77,9 @@ export default class extends React.Component {
                     </Menu.Item>
                     <Menu.Item key="3" icon={<CheckOutlined/>}>
                         <Link to="/tools/regtest">正则测试</Link>
+                    </Menu.Item>
+                    <Menu.Item key="clock" icon={<FieldTimeOutlined/>}>
+                        <Link to="/tools/clock">时钟</Link>
                     </Menu.Item>
                     <Menu.SubMenu title="ASCII" key="5" icon={<BorderlessTableOutlined/>}>
                         <Menu.Item key="5.1" icon={<EyeOutlined/>}>
@@ -133,8 +138,11 @@ export default class extends React.Component {
                         <Route path="/"
                                element={<Connect collapsed={collapsed} setCollapse={this.setCollapse}/>}
                         />
+                        <Route path="/home"
+                               element={<Home collapsed={collapsed} setCollapse={this.setCollapse}/>}
+                        />
                         <Route path="*"
-                               element={<Connect collapsed={collapsed} setCollapse={this.setCollapse}/>}
+                               element={<Home collapsed={collapsed} setCollapse={this.setCollapse}/>}
                         />
                     </Routes>
                 </Content>
