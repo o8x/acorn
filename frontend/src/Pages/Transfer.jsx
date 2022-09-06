@@ -7,6 +7,7 @@ import {
     CloudDownloadOutlined,
     CloudUploadOutlined,
     CodeOutlined,
+    ExclamationCircleOutlined,
     HomeOutlined,
     ReloadOutlined,
     RollbackOutlined,
@@ -68,6 +69,28 @@ export default function (props) {
             }
 
             message.success(`已开始下载：${path}`)
+        })
+    }
+
+    async function removeFile(file) {
+        const path = await resolve(file.name)
+        window.runtime.EventsOnce("remove_files_reply", data => {
+            if (data.status_code === 500) {
+                return message.error(`下载失败: ${data.message}`)
+            }
+
+            message.success(`${path} 已被移动到 /tmp 目录，重启后自动删除。`)
+        })
+
+        Modal.confirm({
+            title: "确认删除",
+            icon: <ExclamationCircleOutlined/>,
+            content: `确认删除文件：${path}？`,
+            okText: "确认",
+            cancelText: "取消",
+            onOk() {
+                window.runtime.EventsEmit("remove_files", id, path)
+            },
         })
     }
 
@@ -150,7 +173,7 @@ export default function (props) {
                 }
                 return <Space size="middle">
                     <a onClick={() => downloadFile(record)}>下载</a>
-                    <a onClick={() => message.info("暂未实现")}>删除</a>
+                    <a onClick={() => removeFile(record)}>删除</a>
                 </Space>
             },
         }]

@@ -328,6 +328,39 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		)
 	})
 
+	runtime.EventsOn(ctx, "remove_files", func(data ...interface{}) {
+		id, _ := strconv.ParseInt(data[0].(string), 10, 32)
+
+		var c ConnectItem
+		if err := GetInfoByID(int(id), &c); err != nil {
+			runtime.EventsEmit(ctx, "remove_files_reply", response.Error(err))
+			return
+		}
+
+		conn := ssh.New(ssh.Connection{
+			Host:       c.Host,
+			User:       c.UserName,
+			Port:       c.Port,
+			Password:   c.Password,
+			AuthMethod: c.AuthType,
+		})
+
+		if err := conn.Connect(); err != nil {
+			runtime.EventsEmit(ctx, "remove_files_reply", response.Error(err))
+			return
+		}
+
+		filename := data[1].(string)
+		if _, err := conn.ExecShellCode(fmt.Sprintf("mv '%s' /tmp", filename)); err != nil {
+			runtime.EventsEmit(ctx, "gen_script_reply",
+				response.Warn(fmt.Sprintf("update help fails %s", err.Error())),
+			)
+			return
+		}
+
+		runtime.EventsEmit(ctx, "remove_files_reply", response.NoContent())
+	})
+
 	runtime.EventsOn(ctx, "upload_files", func(data ...interface{}) {
 		id, _ := strconv.ParseInt(data[0].(string), 10, 32)
 
