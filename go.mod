@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/mattn/go-sqlite3 v1.14.15
+	github.com/pkg/sftp v1.13.5
 	github.com/wailsapp/wails/v2 v2.0.0-beta.44.2
 	golang.org/x/crypto v0.0.0-20220824171710-5757bc0c5503
 	gopkg.in/yaml.v3 v3.0.1
@@ -15,6 +16,7 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/jchv/go-winloader v0.0.0-20210711035445-715c2860da7e // indirect
+	github.com/kr/fs v0.1.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/labstack/echo/v4 v4.8.0 // indirect
 	github.com/labstack/gommon v0.3.1 // indirect

@@ -3,6 +3,8 @@ import Container from "./Container"
 import "./Transfer.css"
 import {Button, Input, message, Modal, Space, Table, Tooltip, Upload} from "antd"
 import {useParams} from "react-router-dom"
+import CustomModal from "../Components/Modal"
+import Editor from "../Components/Editor"
 import {
     CloudDownloadOutlined,
     CloudUploadOutlined,
@@ -94,6 +96,38 @@ export default function (props) {
         })
     }
 
+    let mr = React.createRef()
+
+    async function editFile(file) {
+        message.info(`正在读取文件内容，请不要进行重复操作。`)
+        const path = await resolve(file.name)
+        window.runtime.EventsEmit("edit_file", id, path)
+        window.runtime.EventsOnce("edit_file_reply", data => {
+            if (data.status_code === 500) {
+                return message.error(`编辑失败: ${data.message}`)
+            }
+
+            let text = data.body
+            mr.current.setTitle(`编辑文件: ${path}`)
+            mr.current.setWidth(800)
+            mr.current.setStyle({top: 20})
+            mr.current.setContent(<Editor value={data.body} height="400px" onChange={t => {
+                text = t
+            }}/>)
+            mr.current.show(() => {
+                message.info(`正在保存文件，将自动生成 ${path}.backup 备份文件`)
+                window.runtime.EventsEmit("save_file", id, path, text)
+            })
+        })
+
+        window.runtime.EventsOnce("save_file_reply", data => {
+            if (data.status_code === 500) {
+                return message.error(`文件保存失败: ${data.message}`)
+            }
+            message.info("保存成功")
+        })
+    }
+
     function uploadFile() {
         window.runtime.EventsEmit("upload_files", id, wd)
         window.runtime.EventsOnce("upload_files_reply", data => {
@@ -174,6 +208,7 @@ export default function (props) {
                 return <Space size="middle">
                     <a onClick={() => downloadFile(record)}>下载</a>
                     <a onClick={() => removeFile(record)}>删除</a>
+                    {record.isdir || record.size > 10000000 ? "" : <a onClick={() => editFile(record)}>编辑</a>}
                 </Space>
             },
         }]
@@ -270,5 +305,6 @@ export default function (props) {
                 showTotal: total => `共${total}条`,
             }
         }/>
+        <CustomModal ref={mr}/>
     </Container>
 }

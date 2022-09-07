@@ -88,6 +88,10 @@ func (conn *Connection) Connect() error {
 	return err
 }
 
+func (conn *Connection) GetClient() *ssh.Client {
+	return conn.client
+}
+
 func (conn *Connection) OpenSession(retry bool) error {
 	s1, err := conn.client.NewSession()
 	if err != nil {

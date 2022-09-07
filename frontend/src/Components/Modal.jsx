@@ -3,9 +3,11 @@ import {Modal} from "antd"
 
 export default class CustomModal extends React.Component {
     state = {
+        width: 600,
         title: "",
         content: "",
         show: false,
+        style: {},
         renderHTML: null,
         handleOK: () => null,
         handleCancel: () => null,
@@ -17,6 +19,14 @@ export default class CustomModal extends React.Component {
 
     setTitle(title) {
         this.setState({title})
+    }
+
+    setStyle(style) {
+        this.setState({style})
+    }
+
+    setWidth(width) {
+        this.setState({width})
     }
 
     show = (ok, cancel) => {
@@ -38,16 +48,18 @@ export default class CustomModal extends React.Component {
     render() {
         return <Modal title={this.state.title}
                       visible={this.state.show}
+                      style={this.state.style}
                       onOk={() => {
                           this.close()
                           this.state.handleOK()
                       }}
                       onCancel={() => {
                           this.close()
-                          this.state.handleCancel()
+                          this.state.handleCancel ? this.state.handleCancel() : ""
                       }}
                       okText="确认"
                       cancelText="取消"
+                      width={this.state.width}
         >
             <p>{this.state.content}</p>
         </Modal>
