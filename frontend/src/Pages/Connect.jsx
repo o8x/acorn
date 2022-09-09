@@ -490,7 +490,7 @@ export default function (props) {
             loading={reloadListLoading}
             dataSource={list}
             showHeader={true}
-            scroll={{x: 790, y: 400}}
+            scroll={{y: 390}}
             rowKey={it => it.id}
             onChange={onTableChange}
             size="middle"
@@ -530,7 +530,7 @@ export default function (props) {
                     </Row>}/>
 
             <Column title="分组"
-                    width={props.collapsed ? 200 : 120}
+                    width={props.collapsed ? 180 : 120}
                     key="tags"
                     dataIndex="tags"
                     filters={tags}
@@ -582,7 +582,9 @@ export default function (props) {
                     }}
             />
 
-            <Column render={(_, item) => {
+            <Column
+                width={250}
+                render={(_, item) => {
                 const isNT = item.type === "windows"
                 return <Space size="middle">
                     <Space split={<Divider type="vertical"/>}>
