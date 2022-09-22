@@ -6,13 +6,14 @@ import {useParams} from "react-router-dom"
 import CustomModal from "../Components/Modal"
 import Editor from "../Components/Editor"
 import {
+    ArrowLeftOutlined,
     CloudDownloadOutlined,
     CloudUploadOutlined,
     CodeOutlined,
     ExclamationCircleOutlined,
+    HomeFilled,
     HomeOutlined,
     ReloadOutlined,
-    RollbackOutlined,
 } from "@ant-design/icons"
 
 const {Dragger} = Upload
@@ -22,6 +23,7 @@ export default function (props) {
     let {id, label, username, host} = JSON.parse(decodeURIComponent(atob(args)))
     id = String(id)
 
+    const home = username === "root" ? "/root" : "/home"
     let [list, setList] = useState([])
     let [wd, setWD] = useState("/")
     let [pn, setPN] = useState(1)
@@ -260,7 +262,7 @@ export default function (props) {
     return <Container title={label} subTitle={`${username}@${host}:${wd}`}>
         <Space>
             <Tooltip title="返回上一级目录">
-                <Button shape="circle" icon={<RollbackOutlined/>} disabled={wd === "/" || tableLoading}
+                <Button shape="circle" icon={<ArrowLeftOutlined/>} disabled={wd === "/" || tableLoading}
                         onClick={() => listDir("../")}/>
             </Tooltip>
             <Tooltip title="刷新当前目录">
@@ -271,6 +273,10 @@ export default function (props) {
             <Tooltip title="返回根目录">
                 <Button shape="circle" icon={<HomeOutlined/>} disabled={wd === "/"}
                         onClick={() => listDir("/")}/>
+            </Tooltip>
+            <Tooltip title={"进入用户家目录: " + home}>
+                <Button shape="circle" icon={<HomeFilled/>} disabled={tableLoading || wd === home}
+                        onClick={() => listDir(home)}/>
             </Tooltip>
             <Tooltip title={`启动 SSH 会话并将工作目录设置为：${wd}`}>
                 <Button shape="circle" icon={<CodeOutlined/>} disabled={tableLoading}
