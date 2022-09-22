@@ -1,11 +1,11 @@
 module github.com/o8x/acorn
 
-go 1.17
+go 1.18
 
 require (
 	github.com/mattn/go-sqlite3 v1.14.15
 	github.com/pkg/sftp v1.13.5
-	github.com/wailsapp/wails/v2 v2.0.0-beta.44.2
+	github.com/wailsapp/wails/v2 v2.0.0
 	golang.org/x/crypto v0.0.0-20220824171710-5757bc0c5503
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -33,8 +33,8 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/wailsapp/mimetype v1.4.1 // indirect
-	golang.org/x/net v0.0.0-20220822230855-b0a4917ee28c // indirect
-	golang.org/x/sys v0.0.0-20220823224334-20c2bfdbfe24 // indirect
+	golang.org/x/net v0.0.0-20220921203646-d300de134e69 // indirect
+	golang.org/x/sys v0.0.0-20220919091848-fb04ddd9f9c8 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
