@@ -428,7 +428,15 @@ export default function (props) {
             host = `${item.host.substr(0, 22)}...`
         }
 
-        return `ssh ${param}${port}${item.username}@${host}`
+        let ssh = `ssh ${param}${port}${item.username}@${host}`
+        if (short) {
+            return ssh
+        }
+
+        return <>
+            <b>ssh: </b>{ssh} <br/>
+            <b>scp: </b>export FILES=$(ls); scp -r {param}{port.toUpperCase()} $FILES {item.username}@{host}:/root
+        </>
     }
 
     const onTableChange = (pagination, filters, sorter, extra) => {
@@ -585,20 +593,20 @@ export default function (props) {
             <Column
                 width={250}
                 render={(_, item) => {
-                const isNT = item.type === "windows"
-                return <Space size="middle">
-                    <Space split={<Divider type="vertical"/>}>
-                        <a key="list-conn" onClick={() => SSHConnect(item)}>连接</a>
-                        {
-                            item.params.indexOf("ProxyCommand") !== -1 || isNT ?
-                                <a href="#" disabled>传输</a> :
-                                <Link to={`/transfer/${btoa(encodeURIComponent(JSON.stringify(item)))}`}>传输</Link>
-                        }
-                        <a key="list-edit" onClick={() => editConnect(item)}>编辑</a>
-                        <a key="list-more" onClick={() => moreActions(item)}>扩展</a>
+                    const isNT = item.type === "windows"
+                    return <Space size="middle">
+                        <Space split={<Divider type="vertical"/>}>
+                            <a key="list-conn" onClick={() => SSHConnect(item)}>连接</a>
+                            {
+                                item.params.indexOf("ProxyCommand") !== -1 || isNT ?
+                                    <a href="#" disabled>传输</a> :
+                                    <Link to={`/transfer/${btoa(encodeURIComponent(JSON.stringify(item)))}`}>传输</Link>
+                            }
+                            <a key="list-edit" onClick={() => editConnect(item)}>编辑</a>
+                            <a key="list-more" onClick={() => moreActions(item)}>扩展</a>
+                        </Space>
                     </Space>
-                </Space>
-            }}/>
+                }}/>
         </Table>
         <CustomModal ref={modalRef}/>
     </Container>
