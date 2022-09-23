@@ -14,6 +14,7 @@ import {
     FolderOpenOutlined,
     InfoCircleOutlined,
     MonitorOutlined,
+    PlusOutlined,
     PoweroffOutlined,
     RedoOutlined,
     ReloadOutlined,
@@ -261,17 +262,7 @@ export default function (props) {
         }
 
         setQuickAddInputLoading(true)
-        const hide = message.loading(`正在添加: ${args.host}`, 0)
-
-        window.runtime.EventsEmit("add_connect", args)
-        window.runtime.EventsOnce("add_connect_reply", data => {
-            hide()
-            setQuickAddInputLoading(false)
-            data.status_code === 204 ? message.success("添加完成") : message.error(`添加失败: ${data.message}`)
-
-            setQuickAddInput("")
-            refresh()
-        })
+        addConnect(args)
     }
 
     const handleAddInputOnChange = (e) => {
@@ -359,6 +350,22 @@ export default function (props) {
         })
     }
 
+    let [showAdd, setShowAdd] = useState(false)
+    const addConnect = (values) => {
+        const hide = message.loading(`正在添加: ${values.host}`, 0)
+
+        window.runtime.EventsEmit("add_connect", values)
+        window.runtime.EventsOnce("add_connect_reply", data => {
+            hide()
+            setShowAdd(false)
+            setQuickAddInputLoading(false)
+            data.status_code === 204 ? message.success("添加完成") : message.error(`添加失败: ${data.message}`)
+
+            setQuickAddInput("")
+            refresh()
+        })
+    }
+
     return <Container title="远程连接" subTitle="快速连接SSH和进行双向文件传输">
         <Form onFinish={AddSSHConnect}>
             <Space>
@@ -372,6 +379,11 @@ export default function (props) {
                 <Tooltip title="导入rdp文件">
                     <Button shape="circle" icon={<FolderOpenOutlined/>}
                             onClick={() => importRDPFile()}/>
+                </Tooltip>
+                <Tooltip title="添加连接">
+                    <Button shape="circle" icon={<PlusOutlined/>} onClick={() => {
+                        setShowAdd(true)
+                    }}/>
                 </Tooltip>
                 <Input
                     addonBefore="ssh"
@@ -519,6 +531,22 @@ export default function (props) {
                     setShowEdit(false)
                 }}>删除</Button>
             }
+        />
+        <EditConnect
+            title="添加连接"
+            tags={tags}
+            open={showAdd}
+            connect={{
+                label: "",
+                type: "",
+                username: "",
+                params: "",
+                host: "",
+                auth_type: "",
+                tags: [],
+            }}
+            onClose={() => setShowAdd(false)}
+            onSubmit={addConnect}
         />
         <CustomModal ref={modalRef}/>
     </Container>
