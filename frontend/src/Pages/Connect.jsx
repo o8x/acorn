@@ -1,33 +1,10 @@
 import React, {useEffect, useState} from "react"
-import {
-    Avatar,
-    Button,
-    Col,
-    Divider,
-    Form,
-    Input,
-    message,
-    Modal,
-    Radio,
-    Row,
-    Select,
-    Space,
-    Table,
-    Tag,
-    Tooltip,
-} from "antd"
+import {Avatar, Button, Col, Divider, Form, Input, message, Modal, Row, Space, Table, Tag, Tooltip} from "antd"
 import Container from "./Container"
 import "./Connect.css"
 import CustomModal from "../Components/Modal"
-import {Option} from "antd/es/mentions"
 import {Link} from "react-router-dom"
 
-import centosLogo from "../assets/images/centos-logo.png"
-import debianLogo from "../assets/images/debian-logo.jpg"
-import linuxLogo from "../assets/images/linux-logo.png"
-import openwrtLogo from "../assets/images/openwrt-logo.png"
-import ubuntuLogo from "../assets/images/ubuntu-logo.png"
-import windowsLogo from "../assets/images/windows-logo.png"
 import {
     ApiOutlined,
     CodeOutlined,
@@ -42,22 +19,7 @@ import {
     ReloadOutlined,
 } from "@ant-design/icons"
 import Column from "antd/es/table/Column"
-
-function getLogoSrc(type) {
-    switch (type.toLowerCase()) {
-        case "centos":
-            return centosLogo
-        case "debian":
-            return debianLogo
-        case "openwrt":
-            return openwrtLogo
-        case "ubuntu":
-            return ubuntuLogo
-        case "windows":
-            return windowsLogo
-    }
-    return linuxLogo
-}
+import EditConnect, {getLogoSrc, OSList} from "./EditConnect"
 
 export default function (props) {
     let [list, setList] = useState([])
@@ -68,14 +30,6 @@ export default function (props) {
     let [pagesize, setPageSize] = useState(6)
     let labelInputRef = React.createRef()
     let modalRef = React.createRef()
-    let OSList = [
-        {value: "linux", text: "Linux"},
-        {value: "centos", text: "CentOS"},
-        {value: "ubuntu", text: "Ubuntu"},
-        {value: "debian", text: "Debian"},
-        {value: "openwrt", text: "OpenWRT"},
-        {value: "windows", text: "Windows"},
-    ]
 
     useEffect(function () {
         refresh()
@@ -166,73 +120,6 @@ export default function (props) {
         })
     }
 
-    const editConnect = (item) => {
-        let editRef = React.createRef()
-
-        Modal.confirm({
-            style: {top: 30}, title: "修改连接信息", okText: "确定", cancelText: "取消", width: 600, content: (<Form
-                ref={editRef}
-                labelCol={{span: 4}}
-                layout="horizontal"
-                size="default"
-                initialValues={item}
-            >
-                <Divider/>
-                <Form.Item label="操作系统" name="type">
-                    <Select placeholder="操作系统">
-                        {OSList.map(it => <Option value={it.value} key={it.value}>{it.text}</Option>)}
-                    </Select>
-                </Form.Item>
-                <Form.Item label="分组" name="tags">
-                    <Select placeholder="分组" mode="tags">
-                        {tags.map(it => <Option key={it.id} value={it.id}>{it.name}</Option>)}
-                    </Select>
-                </Form.Item>
-                <Form.Item label="鉴权类型" name="auth_type">
-                    <Radio.Group>
-                        <Radio.Button value="password">密码</Radio.Button>
-                        <Radio.Button value="private_key">私钥</Radio.Button>
-                    </Radio.Group>
-                </Form.Item>
-                <Form.Item label="私钥" name="private_key"><Input/></Form.Item>
-                <Form.Item label="认证" style={{marginBottom: 0}}>
-                    <Form.Item style={{display: "inline-block", width: "calc(50% - 5px)"}} name="username">
-                        <Input placeholder="用户名"/>
-                    </Form.Item>
-                    <Form.Item style={{display: "inline-block", width: "calc(50% - 5px)", marginLeft: 10}}
-                               name="password">
-                        <Input.Password placeholder="密码"/>
-                    </Form.Item>
-                </Form.Item>
-                <Form.Item label="连接" style={{marginBottom: 0}}>
-                    <Form.Item style={{display: "inline-block", width: "calc(50% - 5px)"}} name="host">
-                        <Input placeholder="地址"/>
-                    </Form.Item>
-                    <Form.Item style={{display: "inline-block", width: "calc(50% - 5px)", marginLeft: 10}}
-                               name="port">
-                        <Input placeholder="端口"/>
-                    </Form.Item>
-                </Form.Item>
-                <Form.Item label="连接参数" name="params"><Input/></Form.Item>
-            </Form>), icon: null, onOk: () => {
-                let values = editRef.current.getFieldsValue(true)
-                if (values.tags !== null) {
-                    values.tags = values.tags.filter(it => it !== null && it !== undefined)
-                }
-                values.port = parseInt(values.port)
-                window.runtime.EventsEmit("edit_connect", values)
-                window.runtime.EventsOnce("edit_connect_reply", data => {
-                    if (data.status_code === 500) {
-                        return message.error(data.message)
-                    }
-
-                    message.success("连接信息修改完成")
-                    refresh()
-                })
-            },
-        })
-    }
-
     const moreActions = (item) => {
         const isNT = item.type === "windows"
 
@@ -271,13 +158,6 @@ export default function (props) {
                             <a href="#" disabled>重启</a> :
                             <Button icon={<RedoOutlined/>} onClick={() => message.info("未实现")}>重启</Button>
                     }
-                </Space>
-                <Divider/>
-                <Space split={<Divider type="vertical"/>}>
-                    <Button icon={<DeleteOutlined/>} onClick={() => {
-                        modal.destroy()
-                        deleteSSHConnect(item)
-                    }}>删除</Button>
                 </Space>
             </>,
         })
@@ -464,6 +344,21 @@ export default function (props) {
         })
     }
 
+    let [connectInfo, setConnectInfo] = useState(null)
+    let [showEdit, setShowEdit] = useState(false)
+    const editConnect = (values) => {
+        window.runtime.EventsEmit("edit_connect", values)
+        window.runtime.EventsOnce("edit_connect_reply", data => {
+            setShowEdit(false)
+            if (data.status_code === 500) {
+                return message.error(data.message)
+            }
+
+            loadList()
+            message.success("连接信息修改完成")
+        })
+    }
+
     return <Container title="远程连接" subTitle="快速连接SSH和进行双向文件传输">
         <Form onFinish={AddSSHConnect}>
             <Space>
@@ -602,12 +497,29 @@ export default function (props) {
                                     <a href="#" disabled>传输</a> :
                                     <Link to={`/transfer/${btoa(encodeURIComponent(JSON.stringify(item)))}`}>传输</Link>
                             }
-                            <a key="list-edit" onClick={() => editConnect(item)}>编辑</a>
+                            <a key="list-edit" onClick={() => {
+                                setConnectInfo(item)
+                                setShowEdit(true)
+                            }}>编辑</a>
                             <a key="list-more" onClick={() => moreActions(item)}>扩展</a>
                         </Space>
                     </Space>
                 }}/>
         </Table>
+        <EditConnect
+            title="编辑连接"
+            tags={tags}
+            open={showEdit}
+            connect={connectInfo}
+            onClose={() => setShowEdit(false)}
+            onSubmit={editConnect}
+            extra={
+                <Button icon={<DeleteOutlined/>} onClick={() => {
+                    deleteSSHConnect(connectInfo)
+                    setShowEdit(false)
+                }}>删除</Button>
+            }
+        />
         <CustomModal ref={modalRef}/>
     </Container>
 }
