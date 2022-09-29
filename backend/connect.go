@@ -27,6 +27,23 @@ var iterm2Script []byte
 //go:embed scripts/rdp.applescript
 var rdpScript []byte
 
+const (
+	ConnectSSHStatsKey      = "connect_sum_count"
+	ConnectRDPStatsKey      = "connect_rdp_sum_count"
+	PingStatsKey            = "ping_sum_count"
+	TopStatsKey             = "top_sum_count"
+	ScpUploadStatsKey       = "scp_upload_sum_count"
+	ScpUploadBase64StatsKey = "scp_upload_base64_sum_count"
+	ScpDownStatsKey         = "scp_download_sum_count"
+	ScpCloudDownStatsKey    = "scp_cloud_download_sum_count"
+	LocalITermStatsKey      = "local_iterm_sum_count"
+	LoadRDPStatsKey         = "import_rdp_sum_count"
+	FileTransferStatsKey    = "file_transfer_sum_count"
+	CopyIDStatsKey          = "copy_id_sum_count"
+	EditFileStatsKey        = "edit_file_sum_count"
+	DeleteFileStatsKey      = "delete_file_sum_count"
+)
+
 type Connect struct {
 	ctx context.Context
 }
@@ -73,6 +90,10 @@ func (c *Connect) SSHConnect(id int, workdir string) *response.Response {
 		return c.RDPConnect(p)
 	}
 
+	if err := database.IntValueInc(ConnectSSHStatsKey); err != nil {
+		return response.Error(err)
+	}
+
 	filename, err := c.makeSSHScript("ssh", p)
 	if err != nil {
 		return response.Error(err)
@@ -88,6 +109,10 @@ func (c *Connect) SSHConnect(id int, workdir string) *response.Response {
 func (c *Connect) TopConnect(id int) *response.Response {
 	var p ConnectItem
 	if err := GetInfoByID(id, &p); err != nil {
+		return response.Error(err)
+	}
+
+	if err := database.IntValueInc(TopStatsKey); err != nil {
 		return response.Error(err)
 	}
 
@@ -149,6 +174,10 @@ func CreateRDPScript(file string, password string) (string, error) {
 }
 
 func (c *Connect) RDPConnect(p ConnectItem) *response.Response {
+	if err := database.IntValueInc(ConnectRDPStatsKey); err != nil {
+		return response.Error(err)
+	}
+
 	file, err := CreateRDPFile(p)
 	if err != nil {
 		return response.Error(err)
@@ -190,6 +219,10 @@ func (c *Connect) PingConnect(id int) *response.Response {
 		return response.Error(err)
 	}
 
+	if err := database.IntValueInc(PingStatsKey); err != nil {
+		return response.Error(err)
+	}
+
 	if err := c.updateLastUseTime(id); err != nil {
 		return response.Error(err)
 	}
@@ -205,6 +238,10 @@ func (c *Connect) OpenLocalConsole() *response.Response {
 	}
 
 	if err = exec.Command("osascript", f.Name()).Start(); err != nil {
+		return response.Error(err)
+	}
+
+	if err := database.IntValueInc(LocalITermStatsKey); err != nil {
 		return response.Error(err)
 	}
 
@@ -234,6 +271,10 @@ func (c *Connect) SCPDownload(ctx context.Context, id int, file string) *respons
 	}
 
 	if err = exec.Command("osascript", script).Start(); err != nil {
+		return response.Error(err)
+	}
+
+	if err := database.IntValueInc(ScpDownStatsKey); err != nil {
 		return response.Error(err)
 	}
 
@@ -278,6 +319,10 @@ func (c *Connect) SCPUpload(ctx context.Context, id int, dir string) *response.R
 		return response.Error(err)
 	}
 
+	if err := database.IntValueInc(ScpUploadStatsKey); err != nil {
+		return response.Error(err)
+	}
+
 	if err := c.updateLastUseTime(id); err != nil {
 		return response.Error(err)
 	}
@@ -314,6 +359,10 @@ func (c *Connect) SCPUploadBase64(id int, dir, filename, b64 string) *response.R
 		return response.Error(err)
 	}
 
+	if err := database.IntValueInc(ScpUploadBase64StatsKey); err != nil {
+		return response.Error(err)
+	}
+
 	if err := c.updateLastUseTime(id); err != nil {
 		return response.Error(err)
 	}
@@ -335,6 +384,10 @@ func (c *Connect) CloudDownload(id int, dir, link string) *response.Response {
 	_, file := filepath.Split(l.Path)
 	if file == "" {
 		return response.Error(fmt.Errorf("无法解析文件名(%s)", l.Path))
+	}
+
+	if err := database.IntValueInc(ScpCloudDownStatsKey); err != nil {
+		return response.Error(err)
 	}
 
 	script, err := c.MakeCloudDownloadCommand(link, filepath.Join(dir, file), p)
@@ -373,6 +426,10 @@ func (c *Connect) EditConnect(item ConnectItem) error {
 func (c *Connect) SSHCopyID(id int) *response.Response {
 	var p ConnectItem
 	if err := GetInfoByID(id, &p); err != nil {
+		return response.Error(err)
+	}
+
+	if err := database.IntValueInc(CopyIDStatsKey); err != nil {
 		return response.Error(err)
 	}
 
@@ -511,6 +568,10 @@ func (c *Connect) importRDPFile(ctx context.Context) *response.Response {
 		if strings.Contains(it, "username:s:") {
 			username = strings.TrimPrefix(it, "username:s:")
 		}
+	}
+
+	if err := database.IntValueInc(LoadRDPStatsKey); err != nil {
+		return response.Error(err)
 	}
 
 	stmt, err := database.Get().Prepare(`insert into connect (type, label, username, port, host, params, auth_type) values (?, ?, ?, ?, ?, ?, ?)`)

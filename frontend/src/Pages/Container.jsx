@@ -5,16 +5,15 @@ export default class extends React.Component {
     render() {
         return <>
             <div style={{"--wails-draggable": "drag"}}>
-                <PageHeader
+                {this.props.title === "" && this.props.subTitle === "" ? "" : <PageHeader
                     title={this.props.title}
                     subTitle={this.props.subTitle}
-                />
+                />}
             </div>
             <div
                 className="site-layout-background"
                 style={{
-                    padding: 16,
-                    height: "calc(100% - 72px)",
+                    padding: 16, height: "calc(100% - 72px)",
                 }}
             >
                 {this.props.children}

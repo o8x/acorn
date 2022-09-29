@@ -20,7 +20,8 @@ import {
     ReloadOutlined,
 } from "@ant-design/icons"
 import Column from "antd/es/table/Column"
-import EditConnect, {getLogoSrc, OSList} from "./EditConnect"
+import EditConnect, {OSList} from "./EditConnect"
+import {getLogoSrc} from "../Helpers/logo"
 
 export default function (props) {
     let [list, setList] = useState([])

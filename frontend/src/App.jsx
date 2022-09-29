@@ -38,7 +38,7 @@ const {Content, Sider} = Layout
 export default class extends React.Component {
     state = {
         collapsed: true,
-        selected: "0",
+        selected: "home",
     }
 
     setCollapse = (collapsed) => {
@@ -61,10 +61,10 @@ export default class extends React.Component {
                 <div className="logo" data-wails-drag onClick={() => this.setCollapse(!collapsed)}></div>
                 <Menu theme="dark" defaultSelectedKeys={this.state.selected} mode="inline">
                     <Menu.Item key="home" icon={<HomeOutlined/>}>
-                        <Link to="/home">主页</Link>
+                        <Link to="/">主页</Link>
                     </Menu.Item>
                     <Menu.Item key="0" icon={<ApartmentOutlined/>}>
-                        <Link to="/">连接</Link>
+                        <Link to="/connect">连接</Link>
                     </Menu.Item>
                     <Menu.Item key="1" icon={<FieldStringOutlined/>}>
                         <Link to="/tools/textcodec">文本编解码</Link>
@@ -135,10 +135,10 @@ export default class extends React.Component {
                         <Route path="/tools/scripteditor/"
                                element={<ScriptEditor collapsed={collapsed} setCollapse={this.setCollapse}/>}/>}
                         />
-                        <Route path="/"
+                        <Route path="/connect"
                                element={<Connect collapsed={collapsed} setCollapse={this.setCollapse}/>}
                         />
-                        <Route path="/home"
+                        <Route path="/"
                                element={<Home collapsed={collapsed} setCollapse={this.setCollapse}/>}
                         />
                         <Route path="*"

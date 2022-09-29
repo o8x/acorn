@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/o8x/acorn/backend/controller"
 	"github.com/o8x/acorn/backend/database"
@@ -120,6 +121,23 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		}
 
 		runtime.EventsEmit(ctx, "add_connect_reply", response.NoContent())
+	})
+
+	runtime.EventsOn(ctx, "add_recent", func(data ...interface{}) {
+		item := data[0].(map[string]interface{})
+
+		stmt, err := database.Get().Prepare(`INSERT INTO recent (type, label, url, logo_url) VALUES (?, ?, ? ,?)`)
+		if err != nil {
+			runtime.EventsEmit(ctx, "add_recent_reply", response.Error(err))
+			return
+		}
+
+		if _, err := stmt.Exec(item["type"], item["label"], item["url"], item["logo_url"]); err != nil {
+			runtime.EventsEmit(ctx, "add_recent_reply", response.Error(err))
+			return
+		}
+
+		runtime.EventsEmit(ctx, "add_recent_reply", response.NoContent())
 	})
 
 	runtime.EventsOn(ctx, "ping_connect", func(data ...interface{}) {
@@ -254,10 +272,46 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		runtime.EventsEmit(ctx, "set_connects", response.OK(items))
 	})
 
+	runtime.EventsOn(ctx, "get_recent", func(data ...interface{}) {
+		rows, err := database.Get().Query("select * from recent")
+		if err != nil {
+			runtime.EventsEmit(ctx, "get_recent_reply", response.OK(nil))
+			return
+		}
+
+		type Recent struct {
+			Type       string    `json:"type"`
+			Label      string    `json:"label"`
+			Url        string    `json:"url"`
+			LogoUrl    string    `json:"logo_url"`
+			ID         int       `json:"id"`
+			IsDelete   int       `json:"is_delete"`
+			CreateTime time.Time `json:"create_time"`
+		}
+
+		var items []Recent
+		for rows.Next() {
+			p := Recent{}
+			err := rows.Scan(&p.ID, &p.Type, &p.Label, &p.Url, &p.LogoUrl, &p.IsDelete, &p.CreateTime)
+			if err != nil {
+				continue
+			}
+			fmt.Println(p)
+			items = append(items, p)
+		}
+
+		runtime.EventsEmit(ctx, "get_recent_reply", response.OK(items))
+	})
+
 	runtime.EventsOn(ctx, "list_dir", func(data ...interface{}) {
 		var c ConnectItem
 		id, _ := strconv.ParseInt(data[0].(string), 10, 32)
 		if err := GetInfoByID(int(id), &c); err != nil {
+			runtime.EventsEmit(ctx, "list_dir_reply", response.Error(err))
+			return
+		}
+
+		if err := database.IntValueInc(FileTransferStatsKey); err != nil {
 			runtime.EventsEmit(ctx, "list_dir_reply", response.Error(err))
 			return
 		}
@@ -339,6 +393,11 @@ func (c *App) RegisterRouter(ctx context.Context) {
 			return
 		}
 
+		if err := database.IntValueInc(DeleteFileStatsKey); err != nil {
+			runtime.EventsEmit(ctx, "remove_files_reply", response.Error(err))
+			return
+		}
+
 		conn := ssh.New(ssh.Connection{
 			Host:       c.Host,
 			User:       c.UserName,
@@ -368,6 +427,11 @@ func (c *App) RegisterRouter(ctx context.Context) {
 
 		var c ConnectItem
 		if err := GetInfoByID(int(id), &c); err != nil {
+			runtime.EventsEmit(ctx, "edit_file_reply", response.Error(err))
+			return
+		}
+
+		if err := database.IntValueInc(EditFileStatsKey); err != nil {
 			runtime.EventsEmit(ctx, "edit_file_reply", response.Error(err))
 			return
 		}
@@ -503,5 +567,36 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		}
 
 		runtime.EventsEmit(ctx, "get_tags_replay", response.OK(all))
+	})
+
+	runtime.EventsOn(ctx, "get_stats", func(data ...interface{}) {
+		type stats struct {
+			SumCount int `json:"sum_count"`
+		}
+
+		list := []string{
+			ConnectSSHStatsKey,
+			ConnectRDPStatsKey,
+			PingStatsKey,
+			TopStatsKey,
+			ScpUploadStatsKey,
+			ScpUploadBase64StatsKey,
+			ScpDownStatsKey,
+			ScpCloudDownStatsKey,
+			LocalITermStatsKey,
+			LoadRDPStatsKey,
+			FileTransferStatsKey,
+			CopyIDStatsKey,
+			EditFileStatsKey,
+			DeleteFileStatsKey,
+		}
+
+		r := stats{}
+		for _, k := range list {
+			val, _ := database.GetValueInt(k)
+			r.SumCount += val
+		}
+
+		runtime.EventsEmit(ctx, "get_stats_reply", response.OK(r))
 	})
 }
