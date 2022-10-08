@@ -1,4 +1,4 @@
-import {Col, Progress, Row, Statistic, Typography} from "antd"
+import {Col, Progress, Row, Statistic, Tooltip, Typography} from "antd"
 import React, {useEffect, useState} from "react"
 import Container from "./Container"
 import "./Clock.css"
@@ -9,31 +9,40 @@ const {Title} = Typography
 const {Countdown} = Statistic
 
 const holidays = [{
-    name: "元旦", startDate: moment("2022/01/01 00:00:00"), endDate: moment("2022/01/03 23:59:59"), remarks: "共3天",
+    name: "元旦",
+    startDate: moment("2022/12/31 00:00:00").subtract(6, "hours"),
+    endDate: moment("2023/01/02 23:59:59"),
+    remarks: "2022年12月31日至2023年1月2日放假调休，共3天。2023年1月3日（星期二）上班。",
 }, {
     name: "春节",
-    startDate: moment("2022/01/31 00:00:00"),
-    endDate: moment("2022/02/06 23:59:59"),
-    remarks: "共7天，1月29日（星期六）、1月30日（星期日）上班。",
+    startDate: moment("2023/01/21 00:00:00").subtract(6, "hours"),
+    endDate: moment("2023/1/27 23:59:59"),
+    remarks: "2023年1月21日至27日放假调休，共7天。1月28日（星期六）、1月29日（星期日）上班。",
 }, {
     name: "清明节",
-    startDate: moment("2022/04/03 00:00:00"),
-    endDate: moment("2022/04/05 23:59:59"),
-    remarks: "共3天，4月2日（星期六）上班。",
+    startDate: moment("2023/04/05 00:00:00").subtract(6, "hours"),
+    endDate: moment("2023/04/05 23:59:59"),
+    remarks: "4月5日放假，共1天。4月6日（星期四）上班。",
 }, {
     name: "劳动节",
-    startDate: moment("2022/04/30 00:00:00"),
-    endDate: moment("2022/05/04 23:59:59"),
-    remarks: "共5天，4月24日（星期日）、5月7日（星期六）上班",
+    startDate: moment("2023/05/01 00:00:00").subtract(6, "hours"),
+    endDate: moment("2023/05/05 23:59:59"),
+    remarks: "5月1日至5月5日放假调休，共5天。4月29日（星期六）4月30日（星期日）上班。",
 }, {
-    name: "端午节", startDate: moment("2022/06/03 00:00:00"), endDate: moment("2022/06/05 23:59:59"), remarks: "共3天",
+    name: "端午节",
+    startDate: moment("2023/06/22 00:00:00").subtract(6, "hours"),
+    endDate: moment("2023/06/24 23:59:59"),
+    remarks: "6月22日至24日放假公休，共3天。6月25日（星期日）上班。",
 }, {
-    name: "中秋节", startDate: moment("2022/09/09 18:00:00"), endDate: moment("2022/09/12 23:59:59"), remarks: "共3天",
+    name: "中秋节",
+    startDate: moment("2023/09/29 00:00:00").subtract(6, "hours"),
+    endDate: moment("2023/10/06 23:59:59"),
+    remarks: "9月29日至10月6日放假调休，共8天。10月7日（星期五）10月8日（星期六）上班。",
 }, {
     name: "国庆节",
-    startDate: moment("2022/10/01 00:00:00"),
-    endDate: moment("2022/10/07 18:00:00"),
-    remarks: "共7天，10月8日（星期六）、10月9日（星期日）上班。",
+    startDate: moment("2023/09/29 00:00:00").subtract(6, "hours"),
+    endDate: moment("2023/10/06 23:59:59"),
+    remarks: "9月29日至10月6日放假调休，共8天。10月7日（星期五）10月8日（星期六）上班。",
 }]
 
 const getFuture = function () {
@@ -119,11 +128,13 @@ export default () => {
                         </Row>
                     </Col>
                     <Col span={12}>
-                        <Statistic title="下一个法定节假日"
-                                   value={holiday === null ? "-" : `${holiday.name}`}
-                                   prefix={<GiftOutlined/>}
-                                   suffix={<WeekOfNextHoliday/>}
-                        />
+                        <Tooltip title={holiday === null ? "-" : `${holiday.remarks}`} placement="topLeft">
+                            <Statistic title="下一个法定节假日"
+                                       value={holiday === null ? "-" : `${holiday.name}`}
+                                       prefix={<GiftOutlined/>}
+                                       suffix={<WeekOfNextHoliday/>}
+                            />
+                        </Tooltip>
                         <p></p>
                         {holiday !== null && <Countdown
                             title="距离下一个法定假日" value={holiday.startDate.unix() * 1000}
