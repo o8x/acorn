@@ -58,7 +58,7 @@ export default class extends React.Component {
                 overflow: "auto",
                 height: "100vh",
             }}>
-                <div className="logo" data-wails-drag onClick={() => this.setCollapse(!collapsed)}></div>
+                <div className="logo" onClick={() => this.setCollapse(!collapsed)}></div>
                 <Menu theme="dark" defaultSelectedKeys={this.state.selected} mode="inline">
                     <Menu.Item key="home" icon={<HomeOutlined/>}>
                         <Link to="/">主页</Link>
