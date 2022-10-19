@@ -227,7 +227,7 @@ export default function (props) {
         }
     }, [])
 
-    return <Container title="" subTitle="">
+    return <Container title="" subTitle="" overflowHidden>
         <PageHeader
             style={{"--wails-draggable": "drag"}}
             title={`${timeSegment()}，哲`}
