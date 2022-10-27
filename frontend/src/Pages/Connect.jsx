@@ -29,7 +29,9 @@ export default function (props) {
     let [quickAddInput, setQuickAddInput] = useState("")
     let [quickAddInputLoading, setQuickAddInputLoading] = useState(false)
     let [reloadListLoading, setReloadListLoading] = useState(false)
-    let [pagesize, setPageSize] = useState(6)
+    let [pagesize, setPageSize] = useState(10)
+    let [tableHeight, setTableHeight] = useState(410)
+    let [pn, setPN] = useState(1)
     let labelInputRef = React.createRef()
     let modalRef = React.createRef()
 
@@ -40,6 +42,8 @@ export default function (props) {
     const refresh = () => {
         loadList()
         loadTags()
+        setPN(1)
+        setPageSize(10)
     }
 
     const loadTags = () => {
@@ -312,7 +316,8 @@ export default function (props) {
     }
 
     const onTableChange = (pagination, filters, sorter, extra) => {
-        setPageSize(filters.list !== null || filters.tags !== null ? 999 : 6)
+        setPN(pagination.current)
+        setPageSize(filters.list !== null || filters.tags !== null ? 999 : pagination.pageSize)
     }
 
     const openLocalConsole = () => {
@@ -367,7 +372,7 @@ export default function (props) {
         })
     }
 
-    return <Container title="远程连接" subTitle="快速连接SSH和进行双向文件传输">
+    return <Container title="远程连接" subTitle="快速连接SSH和进行双向文件传输" overflowHidden>
         <Form onFinish={AddSSHConnect}>
             <Space>
                 <Tooltip title="刷新列表">
@@ -406,7 +411,7 @@ export default function (props) {
             loading={reloadListLoading}
             dataSource={list}
             showHeader={true}
-            scroll={{y: 390}}
+            scroll={{y: tableHeight}}
             rowKey={it => it.id}
             onChange={onTableChange}
             size="middle"
@@ -417,9 +422,12 @@ export default function (props) {
                 rowExpandable: item => item.type === "windows" || item.params !== "" || item.username.length > 13 || item.host.length > 22,
             }}
             pagination={{
-                pageSize: pagesize,
-                hideOnSinglePage: true,
+                size: "default",
+                simple: true,
+                showSizeChanger: true,
+                current: pn,
                 total: list.length,
+                pageSize: pagesize,
                 showTotal: total => `共${total}条`,
             }}>
 

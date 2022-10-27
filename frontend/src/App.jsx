@@ -5,6 +5,7 @@ import {Link, Route, Routes} from "react-router-dom"
 import {
     ApartmentOutlined,
     BorderlessTableOutlined,
+    BugOutlined,
     CheckOutlined,
     ClockCircleOutlined,
     ControlOutlined,
@@ -32,6 +33,7 @@ import Timestamp from "./Pages/Timestamp"
 import ASCIITable from "./Pages/ASCIITable"
 import Clock from "./Pages/Clock"
 import Home from "./Pages/Home"
+import ProxyIPTester from "./Pages/ProxyIPTester"
 
 const {Content, Sider} = Layout
 
@@ -69,36 +71,39 @@ export default class extends React.Component {
                     <Menu.Item key="1" icon={<FieldStringOutlined/>}>
                         <Link to="/tools/textcodec">文本编解码</Link>
                     </Menu.Item>
-                    <Menu.Item key="scripteditor" icon={<EditOutlined/>}>
-                        <Link to="/tools/scripteditor">脚本编辑器</Link>
-                    </Menu.Item>
-                    <Menu.Item key="2" icon={<FunctionOutlined/>}>
-                        <Link to="/tools/radix">进制转换</Link>
+                    <Menu.Item key="99.1" icon={<FormatPainterOutlined/>}>
+                        <Link to="/tools/json">JSON美化</Link>
                     </Menu.Item>
                     <Menu.Item key="3" icon={<CheckOutlined/>}>
                         <Link to="/tools/regtest">正则测试</Link>
                     </Menu.Item>
-                    <Menu.Item key="clock" icon={<FieldTimeOutlined/>}>
-                        <Link to="/tools/clock">时钟</Link>
+                    <Menu.Item key="2" icon={<FunctionOutlined/>}>
+                        <Link to="/tools/radix">进制转换</Link>
                     </Menu.Item>
-                    <Menu.SubMenu title="ASCII" key="5" icon={<BorderlessTableOutlined/>}>
-                        <Menu.Item key="5.1" icon={<EyeOutlined/>}>
-                            <Link to="/tools/ascii/visible">可见字符</Link>
-                        </Menu.Item>
-                        <Menu.Item key="5.2" icon={<ControlOutlined/>}>
-                            <Link to="/tools/ascii/control">控制字符</Link>
-                        </Menu.Item>
-                    </Menu.SubMenu>
+                    <Menu.Item key="99.2" icon={<ClockCircleOutlined/>}>
+                        <Link to="/tools/timestamp">时间戳转换</Link>
+                    </Menu.Item>
+                    <Menu.Item key="proxyiptester" icon={<BugOutlined/>}>
+                        <Link to="/tools/proxyiptester">代理IP调试工具</Link>
+                    </Menu.Item>
                     <Menu.SubMenu title="工具" key="99" icon={<ToolOutlined/>}>
-                        <Menu.Item key="99.1" icon={<FormatPainterOutlined/>}>
-                            <Link to="/tools/json">JSON美化</Link>
+                        <Menu.Item key="clock" icon={<FieldTimeOutlined/>}>
+                            <Link to="/tools/clock">时钟</Link>
                         </Menu.Item>
-                        <Menu.Item key="99.2" icon={<ClockCircleOutlined/>}>
-                            <Link to="/tools/timestamp">时间戳转换</Link>
+                        <Menu.Item key="scripteditor" icon={<EditOutlined/>}>
+                            <Link to="/tools/scripteditor">脚本编辑器</Link>
                         </Menu.Item>
                         <Menu.Item key="99.3" icon={<CreditCardOutlined/>}>
                             <Link to="/tools/makepass">密码生成</Link>
                         </Menu.Item>
+                        <Menu.SubMenu title="ASCII" key="5" icon={<BorderlessTableOutlined/>}>
+                            <Menu.Item key="5.1" icon={<EyeOutlined/>}>
+                                <Link to="/tools/ascii/visible">可见字符</Link>
+                            </Menu.Item>
+                            <Menu.Item key="5.2" icon={<ControlOutlined/>}>
+                                <Link to="/tools/ascii/control">控制字符</Link>
+                            </Menu.Item>
+                        </Menu.SubMenu>
                     </Menu.SubMenu>
                 </Menu>
             </Sider>
@@ -134,6 +139,9 @@ export default class extends React.Component {
                         />
                         <Route path="/tools/scripteditor/"
                                element={<ScriptEditor collapsed={collapsed} setCollapse={this.setCollapse}/>}/>}
+                        />
+                        <Route path="/tools/proxyiptester/"
+                               element={<ProxyIPTester collapsed={collapsed} setCollapse={this.setCollapse}/>}/>}
                         />
                         <Route path="/connect"
                                element={<Connect collapsed={collapsed} setCollapse={this.setCollapse}/>}

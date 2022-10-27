@@ -465,6 +465,10 @@ func (c *Connect) updateLastUseTime(id int) error {
 
 func (c *Connect) makeSSHScript(command string, p ConnectItem) (string, error) {
 	cmdline := fmt.Sprintf(`%s {params} -p %d %s@%s`, command, p.Port, p.UserName, p.Host)
+	if p.Workdir != "" {
+		return c.makeTTYScript(fmt.Sprintf("cd %s; $SHELL", p.Workdir), p)
+	}
+
 	return c.CreateScript(cmdline, false, p)
 }
 
@@ -479,17 +483,17 @@ func (c *Connect) MakeSCPDownloadCommand(from, to string, p ConnectItem) (string
 		return "", err
 	}
 
-	cmdline := fmt.Sprintf(`scp -r {params} -P %d '%s@%s:%s' '%s'`, p.Port, p.UserName, p.Host, from, to)
+	cmdline := fmt.Sprintf(`scp -r {params} -P %d '%s@%s:%s' '%s' && exit`, p.Port, p.UserName, p.Host, from, to)
 	return c.CreateScript(cmdline, false, p)
 }
 
 func (c *Connect) MakeSCPUploadCommand(from, to string, p ConnectItem) (string, error) {
-	cmdline := fmt.Sprintf(`scp -r {params} -P %d %s '%s@%s:%s'`, p.Port, from, p.UserName, p.Host, to)
+	cmdline := fmt.Sprintf(`scp -r {params} -P %d %s '%s@%s:%s' && exit`, p.Port, from, p.UserName, p.Host, to)
 	return c.CreateScript(cmdline, false, p)
 }
 
 func (c *Connect) MakeCloudDownloadCommand(link, file string, p ConnectItem) (string, error) {
-	cmdline := fmt.Sprintf("ssh {params} -p %d %s@%s curl -o %s '%s'", p.Port, p.UserName, p.Host, file, link)
+	cmdline := fmt.Sprintf("ssh {params} -p %d %s@%s curl -o %s '%s' && exit", p.Port, p.UserName, p.Host, file, link)
 	return c.CreateScript(cmdline, false, p)
 }
 
@@ -513,7 +517,6 @@ func (c *Connect) CreateScript(cmdline string, autoClose bool, p ConnectItem) (s
 	script = strings.ReplaceAll(script, "{password}", p.Password)
 	script = strings.ReplaceAll(script, "{commands}", cmdline)
 	script = strings.ReplaceAll(script, "{auto_close}", fmt.Sprintf("%v", autoClose))
-	script = strings.ReplaceAll(script, "{workdir}", p.Workdir)
 
 	fmt.Println(script)
 

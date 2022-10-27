@@ -5,6 +5,7 @@ import (
 	"embed"
 	"github.com/o8x/acorn/backend"
 	"github.com/o8x/acorn/backend/controller"
+	"github.com/o8x/acorn/backend/service"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/menu"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -21,7 +22,7 @@ func main() {
 	conn := backend.NewConnect()
 	app := backend.NewApp()
 	transfer := controller.NewTransfer()
-	tools := controller.NewTools()
+	tools := service.NewTools()
 	defaultMenu := menu.NewMenu()
 	defaultMenu.Append(menu.AppMenu())
 	defaultMenu.Append(menu.EditMenu())

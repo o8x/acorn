@@ -14,6 +14,7 @@ import {
     HomeFilled,
     HomeOutlined,
     ReloadOutlined,
+    ToolOutlined,
 } from "@ant-design/icons"
 
 const {Dragger} = Upload
@@ -24,11 +25,12 @@ export default function (props) {
     id = String(id)
 
     const home = username === "root" ? "/root" : "/home"
+    const etc = "/etc"
     let [list, setList] = useState([])
     let [wd, setWD] = useState("/")
     let [pn, setPN] = useState(1)
     let [tableLoading, setTableLoading] = useState(false)
-    let [pageSize, setPageSize] = useState(30)
+    let [pageSize, setPageSize] = useState(100)
     let [fileList, setFileList] = useState([])
     let labelInputRef = React.createRef()
 
@@ -57,7 +59,7 @@ export default function (props) {
                 body.list.sort((a, b) => b.isdir ? 1 : -1)
                 setList(body.list)
                 setPN(1)
-                setPageSize(30)
+                setPageSize(100)
 
                 return dir
             })
@@ -277,6 +279,10 @@ export default function (props) {
             <Tooltip title={"进入用户家目录: " + home}>
                 <Button shape="circle" icon={<HomeFilled/>} disabled={tableLoading || wd === home}
                         onClick={() => listDir(home)}/>
+            </Tooltip>
+            <Tooltip title={"进入etc目录: " + etc}>
+                <Button shape="circle" icon={<ToolOutlined/>} disabled={tableLoading || wd === etc}
+                        onClick={() => listDir(etc)}/>
             </Tooltip>
             <Tooltip title={`启动 SSH 会话并将工作目录设置为：${wd}`}>
                 <Button shape="circle" icon={<CodeOutlined/>} disabled={tableLoading}
