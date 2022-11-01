@@ -3,13 +3,12 @@ package main
 import (
 	"context"
 	"embed"
-	"github.com/o8x/acorn/backend"
-	"github.com/o8x/acorn/backend/controller"
-	"github.com/o8x/acorn/backend/service"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/menu"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/mac"
+
+	app "github.com/o8x/acorn/backend"
 )
 
 //go:embed frontend/dist
@@ -19,10 +18,8 @@ var assets embed.FS
 var icon []byte
 
 func main() {
-	conn := backend.NewConnect()
-	app := backend.NewApp()
-	transfer := controller.NewTransfer()
-	tools := service.NewTools()
+	server := app.New()
+
 	defaultMenu := menu.NewMenu()
 	defaultMenu.Append(menu.AppMenu())
 	defaultMenu.Append(menu.EditMenu())
@@ -36,13 +33,16 @@ func main() {
 		Frameless:     false,
 		Menu:          defaultMenu,
 		OnStartup: func(ctx context.Context) {
-			app.OnStartup(ctx, defaultMenu)
-			app.RegisterRouter(ctx)
+			server.OnStartup(ctx, defaultMenu)
+			server.RegisterRouter(ctx)
 		},
 		Bind: []interface{}{
-			conn,
-			transfer,
-			tools,
+			server.AppleScriptService,
+			server.ConnectSessionService,
+			server.FileSystemService,
+			server.StatsService,
+			server.TaskService,
+			server.ToolService,
 		},
 		Mac: &mac.Options{
 			TitleBar: &mac.TitleBar{

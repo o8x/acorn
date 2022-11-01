@@ -2,6 +2,7 @@ import React, {useEffect, useState} from "react"
 import Container from "./Container"
 import TextArea from "antd/es/input/TextArea"
 import {Form, message, Radio, Segmented, Select} from "antd"
+import {ToolService} from "../rpc"
 
 const options = ["Base64", "URL", "SHA1", "SHA256", "Hex"]
 
@@ -25,7 +26,7 @@ export default function () {
         Base64Decode,
         Base58Encode,
         Base58Decode,
-    } = window.go.controller.Tools
+    } = ToolService
 
     function parseResponse({body, status_code, message: msg}) {
         if (status_code === 500) {

@@ -17,6 +17,8 @@ import {
     ToolOutlined,
 } from "@ant-design/icons"
 
+import {FileSystemService} from "../rpc"
+
 const {Dragger} = Upload
 
 export default function (props) {
@@ -34,9 +36,9 @@ export default function (props) {
     let [fileList, setFileList] = useState([])
     let labelInputRef = React.createRef()
 
-    function resolve(name) {
+    async function resolve(name) {
         const path = `${wd}${wd.substr(-1) !== "/" ? "/" : ""}${name}`
-        return window.go.controller.Transfer.CleanPath(path)
+        return await FileSystemService.CleanPath(path)
     }
 
     async function listDir(dir) {

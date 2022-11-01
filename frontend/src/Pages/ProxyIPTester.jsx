@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from "react"
 import Container from "./Container"
 import TextArea from "antd/es/input/TextArea"
-import {Button, Checkbox, Form, Input, Radio, Select, Tooltip} from "antd"
-import {Tools} from "../rpc"
+import {Button, Checkbox, Col, Form, Input, Radio, Row, Select, Tooltip} from "antd"
+import {ToolService} from "../rpc"
 import {Option} from "antd/es/mentions"
 import Editor from "../Components/Editor"
 
@@ -25,13 +25,13 @@ export default function () {
     }
 
     const runTest = () => {
-        Tools.RunTestWithCurl(getArgs()).then(res => {
+        ToolService.RunTestWithCurl(getArgs()).then(res => {
             localStorage.setItem("command_args", JSON.stringify(getArgs()))
         })
     }
 
     useEffect(() => {
-        Tools.GenCurlCommand(getArgs()).then(cmd => setCommand(cmd))
+        ToolService.GenCurlCommand(getArgs()).then(cmd => setCommand(cmd))
     }, [method, args, proxyUsername, proxyPassword, proxyServer, proxyProto, target, data])
 
     useEffect(() => {
@@ -61,7 +61,7 @@ export default function () {
     }
 
     return <Container title="代理IP测试工具" subTitle="使用 curl 执行命令进行代理IP测试">
-        <Form labelCol={{span: 4}} wrapperCol={{span: 18}}>
+        <Form labelCol={{span: 4}} wrapperCol={{span: 16}}>
             <Form.Item label="方法">
                 <Radio.Group value={method} onChange={(val) => setMethod(val.target.value)}>
                     <Radio value="get">GET</Radio>
@@ -74,30 +74,39 @@ export default function () {
             </Form.Item>
             <Form.Item label="参数">
                 <Checkbox.Group value={args} onChange={onArgChange}>
-                    <Checkbox value="verbose">
-                        <Tooltip title="-v 参数">详细日志</Tooltip>
-                    </Checkbox>
-                    <Checkbox value="time">
-                        <Tooltip title="time 前缀和 -w 时间统计">时间统计</Tooltip>
-                    </Checkbox>
-                    <Checkbox value="location">
-                        <Tooltip title="-L 参数">跳转跟随</Tooltip>
-                    </Checkbox>
-                    <Checkbox value="simple">
-                        <Tooltip title="-s 参数">简单模式</Tooltip>
-                    </Checkbox>
-                    <Checkbox value="trace">
-                        <Tooltip title="--trace 参数，将会自动生成log文件">Trace</Tooltip>
-                    </Checkbox>
-                    <Checkbox value="tunnel">
-                        <Tooltip title="将会自动将目标地址设置为 https://stdout.com.cn/ip?trace&json">隧道代理</Tooltip>
-                    </Checkbox>
-                    <Checkbox value="download">
-                        <Tooltip title="将会自动将目标地址设置为大文件下载地址">下载测速</Tooltip>
-                    </Checkbox>
-                    {/*<Checkbox value="upload">*/}
-                    {/*    <Tooltip title="将会自动将目标地址设置为上传地址">上传测速</Tooltip>*/}
-                    {/*</Checkbox>*/}
+                    <Row>
+                        <Col>
+                            <Checkbox value="verbose">
+                                <Tooltip title="-v 参数">详细日志</Tooltip>
+                            </Checkbox>
+                            <Checkbox value="location">
+                                <Tooltip title="-L 参数">跳转跟随</Tooltip>
+                            </Checkbox>
+                            <Checkbox value="simple">
+                                <Tooltip title="-s 参数">简单模式</Tooltip>
+                            </Checkbox>
+                            <Checkbox value="trace">
+                                <Tooltip title="--trace 参数，将会自动生成log文件">链路跟踪</Tooltip>
+                            </Checkbox>
+                            <Checkbox value="tls">
+                                <Tooltip title="-k 参数">忽略TLS证书验证</Tooltip>
+                            </Checkbox>
+                        </Col>
+                        <Col>
+                            <Checkbox value="time">
+                                <Tooltip title="time 前缀和 -w 时间统计">时间统计</Tooltip>
+                            </Checkbox>
+                            <Checkbox value="tunnel">
+                                <Tooltip title="将会自动将目标地址设置为 https://stdout.com.cn/ip?trace&json">隧道代理</Tooltip>
+                            </Checkbox>
+                            <Checkbox value="download">
+                                <Tooltip title="将会自动将目标地址设置为大文件下载地址">下载测速</Tooltip>
+                            </Checkbox>
+                            <Checkbox value="upload">
+                                <Tooltip title="将会自动将目标地址设置为上传测速点，暂时无效">上传测速</Tooltip>
+                            </Checkbox>
+                        </Col>
+                    </Row>
                 </Checkbox.Group>
             </Form.Item>
             <Form.Item label="代理认证" style={{marginBottom: 0}}>
@@ -108,7 +117,7 @@ export default function () {
                 </Form.Item>
                 <Form.Item style={{display: "inline-block", width: "calc(50% - 5px)", marginLeft: 10}}>
                     <Input placeholder="密码" value={proxyPassword}
-                                    onChange={e => setProxyPassword(e.target.value)}
+                           onChange={e => setProxyPassword(e.target.value)}
                     />
                 </Form.Item>
             </Form.Item>

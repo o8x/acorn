@@ -1,4 +1,4 @@
-package backend
+package app
 
 import (
 	"context"
@@ -11,27 +11,53 @@ import (
 	"strings"
 	"time"
 
-	"github.com/o8x/acorn/backend/controller"
-	"github.com/o8x/acorn/backend/database"
-	"github.com/o8x/acorn/backend/response"
-	"github.com/o8x/acorn/backend/ssh"
-	"github.com/o8x/acorn/backend/utils"
 	"github.com/pkg/sftp"
 	"github.com/wailsapp/wails/v2/pkg/menu"
 	"github.com/wailsapp/wails/v2/pkg/menu/keys"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+
+	"github.com/o8x/acorn/backend/database"
+	"github.com/o8x/acorn/backend/response"
+	"github.com/o8x/acorn/backend/service"
+	"github.com/o8x/acorn/backend/ssh"
+	"github.com/o8x/acorn/backend/utils"
+)
+
+var (
+	parentService         = &service.Service{}
+	AppleScriptService    = &service.AppleScriptService{Service: parentService}
+	ConnectSessionService = &service.SessionService{Service: parentService}
+	FileSystemService     = &service.FileSystemService{Service: parentService}
+	StatsService          = &service.StatsService{Service: parentService}
+	TaskService           = &service.TaskService{Service: parentService}
+	ToolService           = &service.ToolService{Service: parentService}
+	TagService            = &service.TagService{Service: parentService}
 )
 
 type App struct {
-	ctx     context.Context
-	connect *Connect
-	tags    *controller.Tags
+	// remove
+	Connect *Connect
+
+	Context               context.Context
+	AppleScriptService    *service.AppleScriptService
+	ConnectSessionService *service.SessionService
+	FileSystemService     *service.FileSystemService
+	StatsService          *service.StatsService
+	TaskService           *service.TaskService
+	ToolService           *service.ToolService
+	TagService            *service.TagService
 }
 
-func NewApp() *App {
+func New() *App {
 	return &App{
-		connect: NewConnect(),
-		tags:    controller.NewTags(),
+		Connect:               NewConnect(),
+		AppleScriptService:    AppleScriptService,
+		ConnectSessionService: ConnectSessionService,
+		FileSystemService:     FileSystemService,
+		StatsService:          StatsService,
+		TaskService:           TaskService,
+		ToolService:           ToolService,
+		TagService:            TagService,
 	}
 }
 
@@ -62,7 +88,7 @@ func (c *App) OnStartup(ctx context.Context, defaultMenu *menu.Menu) {
 
 	FileMenu := defaultMenu.AddSubmenu("Setting Manage")
 	FileMenu.AddText("Export Connects To Yaml", keys.CmdOrCtrl("o"), func(data *menu.CallbackData) {
-		c.connect.ExportAll(ctx)
+		c.Connect.ExportAll(ctx)
 	})
 	FileMenu.AddText("Import Connects From Yaml", keys.CmdOrCtrl("i"), func(data *menu.CallbackData) {
 		utils.Message(ctx, "尚未实现")
@@ -72,10 +98,13 @@ func (c *App) OnStartup(ctx context.Context, defaultMenu *menu.Menu) {
 
 	runtime.MenuSetApplicationMenu(ctx, defaultMenu)
 	runtime.MenuUpdateApplicationMenu(ctx)
+
+	parentService.DB = database.GetQueries()
+	parentService.Context = ctx
 }
 
 func (c *App) RegisterRouter(ctx context.Context) {
-	c.ctx = ctx
+	c.Context = ctx
 
 	runtime.EventsOn(ctx, "delete_connect", func(data ...interface{}) {
 		for _, id := range data[0].([]interface{}) {
@@ -146,7 +175,7 @@ func (c *App) RegisterRouter(ctx context.Context) {
 			if !ok {
 				continue
 			}
-			c.connect.PingConnect(int(id))
+			c.Connect.PingConnect(int(id))
 		}
 
 		runtime.EventsEmit(ctx, "ping_connect_reply", response.NoContent())
@@ -158,7 +187,7 @@ func (c *App) RegisterRouter(ctx context.Context) {
 			if !ok {
 				continue
 			}
-			c.connect.TopConnect(int(id))
+			c.Connect.TopConnect(int(id))
 		}
 
 		runtime.EventsEmit(ctx, "top_connect_reply", response.NoContent())
@@ -170,14 +199,14 @@ func (c *App) RegisterRouter(ctx context.Context) {
 			if !ok {
 				continue
 			}
-			c.connect.SSHConnect(int(id), data[1].(string))
+			c.Connect.SSHConnect(int(id), data[1].(string))
 		}
 
 		runtime.EventsEmit(ctx, "open_ssh_session_reply", response.NoContent())
 	})
 
 	runtime.EventsOn(ctx, "open_local_console", func(data ...interface{}) {
-		runtime.EventsEmit(ctx, "open_local_console_reply", c.connect.OpenLocalConsole())
+		runtime.EventsEmit(ctx, "open_local_console_reply", c.Connect.OpenLocalConsole())
 	})
 
 	runtime.EventsOn(ctx, "edit_connect", func(data ...interface{}) {
@@ -201,7 +230,7 @@ func (c *App) RegisterRouter(ctx context.Context) {
 			}
 
 			if i, ok := t.(string); ok {
-				id, err := c.tags.AddOne(i)
+				id, err := c.TagService.AddOne(i)
 				if err != nil {
 					continue
 				}
@@ -249,7 +278,7 @@ func (c *App) RegisterRouter(ctx context.Context) {
 			it.Label = ""
 		}
 
-		if err = c.connect.EditConnect(it); err != nil {
+		if err = c.Connect.EditConnect(it); err != nil {
 			runtime.EventsEmit(ctx, "edit_connect_reply", response.Error(err))
 			return
 		}
@@ -263,7 +292,7 @@ func (c *App) RegisterRouter(ctx context.Context) {
 			keyword = data[0].(string)
 		}
 
-		items, err := c.connect.GetAll(keyword)
+		items, err := c.Connect.GetAll(keyword)
 		if err != nil {
 			runtime.EventsEmit(ctx, "set_connects", response.Error(err))
 			return
@@ -380,7 +409,7 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		id, _ := strconv.ParseInt(data[0].(string), 10, 32)
 
 		runtime.EventsEmit(ctx, "download_files_reply",
-			c.connect.SCPDownload(ctx, int(id), data[1].(string)),
+			c.Connect.SCPDownload(ctx, int(id), data[1].(string)),
 		)
 	})
 
@@ -531,7 +560,7 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		id, _ := strconv.ParseInt(data[0].(string), 10, 32)
 
 		runtime.EventsEmit(ctx, "upload_files_reply",
-			c.connect.SCPUpload(ctx, int(id), data[1].(string)),
+			c.Connect.SCPUpload(ctx, int(id), data[1].(string)),
 		)
 	})
 
@@ -540,7 +569,7 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		b64 := strings.Split(data[3].(string), "base64,")
 		if len(b64) > 1 {
 			runtime.EventsEmit(ctx, "drag_upload_files_reply",
-				c.connect.SCPUploadBase64(int(id), data[1].(string), data[2].(string), b64[1]),
+				c.Connect.SCPUploadBase64(int(id), data[1].(string), data[2].(string), b64[1]),
 			)
 			return
 		}
@@ -551,16 +580,16 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		id, _ := strconv.ParseInt(data[0].(string), 10, 32)
 
 		runtime.EventsEmit(ctx, "cloud_download_replay",
-			c.connect.CloudDownload(int(id), data[1].(string), data[2].(string)),
+			c.Connect.CloudDownload(int(id), data[1].(string), data[2].(string)),
 		)
 	})
 
 	runtime.EventsOn(ctx, "import_rdp_file", func(data ...interface{}) {
-		runtime.EventsEmit(ctx, "import_rdp_file_replay", c.connect.importRDPFile(ctx))
+		runtime.EventsEmit(ctx, "import_rdp_file_replay", c.Connect.importRDPFile(ctx))
 	})
 
 	runtime.EventsOn(ctx, "get_tags", func(data ...interface{}) {
-		all, err := c.tags.GetAll()
+		all, err := c.TagService.GetAll()
 		if err != nil {
 			runtime.EventsEmit(ctx, "get_tags_replay", response.Error(err))
 			return

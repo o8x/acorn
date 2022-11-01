@@ -1,4 +1,4 @@
-package controller
+package service
 
 import (
 	"context"
@@ -13,15 +13,12 @@ type Tag struct {
 	CreateTime time.Time `json:"create_time"`
 }
 
-type Tags struct {
+type TagService struct {
+	*Service
 	ctx context.Context
 }
 
-func NewTags() *Tags {
-	return &Tags{}
-}
-
-func (t *Tags) GetAll() (*[]Tag, error) {
+func (t *TagService) GetAll() (*[]Tag, error) {
 	rows, err := database.Get().Query("select * from tags")
 	if err != nil {
 		return nil, err
@@ -40,7 +37,7 @@ func (t *Tags) GetAll() (*[]Tag, error) {
 	return &tags, nil
 }
 
-func (t *Tags) Add(tags []string) {
+func (t *TagService) Add(tags []string) {
 	db := database.Get()
 
 	for _, tag := range tags {
@@ -55,7 +52,7 @@ func (t *Tags) Add(tags []string) {
 	}
 }
 
-func (t *Tags) AddOne(tag string) (int, error) {
+func (t *TagService) AddOne(tag string) (int, error) {
 	db := database.Get()
 
 	stmt, err := db.Prepare(`insert into tags (name) values (?)`)
