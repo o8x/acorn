@@ -2,10 +2,11 @@ package service
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/o8x/acorn/backend/model"
 )
 
 type Service struct {
-	DB      *sql.DB
+	DB      *model.Queries
 	Context context.Context
 }
