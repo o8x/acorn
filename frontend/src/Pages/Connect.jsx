@@ -22,6 +22,7 @@ import {
 import Column from "antd/es/table/Column"
 import EditConnect, {OSList} from "./EditConnect"
 import {getLogoSrc} from "../Helpers/logo"
+import {SessionService} from "../rpc"
 
 export default function (props) {
     let [list, setList] = useState([])
@@ -190,8 +191,7 @@ export default function (props) {
     }
 
     const SSHConnect = (item) => {
-        window.runtime.EventsEmit("open_ssh_session", [item.id], "")
-        window.runtime.EventsOnce("open_ssh_session_reply", data => {
+        SessionService.OpenSSHSession(item.id, "").then(data => {
             if (data.status_code === 500) {
                 return message.error(data.message)
             }
@@ -206,7 +206,7 @@ export default function (props) {
             port: 22,
             params: "-o StrictHostKeyChecking=no",
             host: "",
-            auth_type: "private_key",
+            auth_type: "password",
         }
 
         function splitHost(host) {
@@ -225,7 +225,6 @@ export default function (props) {
             args.type = isNT ? "windows" : "linux"
             args.username = isNT ? "Administrator" : "root"
             args.params = isNT ? "" : args.params
-            args.auth_type = isNT ? "password" : args.params
         }
 
         if (quickAddInput.trim() === "") {
@@ -514,8 +513,7 @@ export default function (props) {
                         <Space split={<Divider type="vertical"/>}>
                             <a key="list-conn" onClick={() => SSHConnect(item)}>连接</a>
                             {
-                                item.params.indexOf("ProxyCommand") !== -1 || isNT ?
-                                    <a href="#" disabled>传输</a> :
+                                isNT ? <a href="#" disabled>传输</a> :
                                     <Link to={`/transfer/${btoa(encodeURIComponent(JSON.stringify(item)))}`}>传输</Link>
                             }
                             <a key="list-edit" onClick={() => {
@@ -540,6 +538,7 @@ export default function (props) {
                     setShowEdit(false)
                 }}>删除</Button>
             }
+            proxyServers={list}
         />
         <EditConnect
             title="添加连接"
@@ -556,6 +555,7 @@ export default function (props) {
             }}
             onClose={() => setShowAdd(false)}
             onSubmit={addConnect}
+            proxyServers={list}
         />
         <CustomModal ref={modalRef}/>
     </Container>

@@ -10,11 +10,12 @@ create table if not exists connect
     port               INT           default 22 not null,
     host               TEXT          default '' not null,
     private_key        TEXT          default '' not null,
+    tags               varchar(1000) default '[]' not null,
+    proxy_server_id    INT           default 0 not null,
     params             TEXT          default '' not null,
     auth_type          varchar(16)   default 'password' not null,
     last_use_timestamp INT           default 0 not null,
-    create_time        timestamp     default CURRENT_TIMESTAMP not null,
-    tags               varchar(1000) default '[]' not null
+    create_time        timestamp     default CURRENT_TIMESTAMP not null
 );
 
 -- auto-generated definition

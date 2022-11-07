@@ -6,9 +6,14 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"path/filepath"
+	"sync"
 	"time"
 
+	"github.com/appleboy/easyssh-proxy"
 	"golang.org/x/crypto/ssh"
+
+	"github.com/o8x/acorn/backend/model"
 )
 
 var (
@@ -16,22 +21,21 @@ var (
 	AuthModeKey      = "private_key"
 )
 
-type Connection struct {
-	Host       string `json:"host"`
-	User       string `json:"user"`
-	Port       int    `json:"port"`
-	Password   string `json:"password"`
-	AuthMethod string `json:"auth_method"`
-	client     *ssh.Client
-	session    *ssh.Session
+type SSH struct {
+	Config      model.Connect  `json:"session"`
+	ProxyConfig *model.Connect `json:"proxy_server"`
+	client      *ssh.Client
+	session     *ssh.Session
 }
 
 var (
-	connections = Connections{}
+	connections = Connections{
+		connections: sync.Map{},
+	}
 )
 
-func New(c Connection) *Connection {
-	if conn := connections.Get(c); conn != nil {
+func Start(c SSH) *SSH {
+	if conn := connections.Get(&c); conn != nil {
 		return conn
 	}
 
@@ -39,60 +43,66 @@ func New(c Connection) *Connection {
 	return &c
 }
 
-func (conn *Connection) Close() error {
+func (conn *SSH) Close() error {
 	defer func() {
 		conn.client = nil
 	}()
 
-	connections.Remove(*conn)
+	connections.Remove(conn)
 	return conn.client.Close()
 }
 
-func (conn *Connection) Connect() error {
+func (conn *SSH) Connect() error {
 	if conn.client != nil {
 		return nil
 	}
 
-	config := &ssh.ClientConfig{
-		User:            conn.User,
-		Timeout:         time.Second * 10,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	homeDir, _ := os.UserHomeDir()
+	keyPath := filepath.Join(homeDir, ".ssh", "id_rsa")
+
+	ssh := &easyssh.MakeConfig{
+		Server:  conn.Config.Host,
+		User:    conn.Config.Username,
+		Port:    fmt.Sprintf("%d", conn.Config.Port),
+		Timeout: time.Second * 10,
 	}
 
-	if conn.AuthMethod == AuthModePassword {
-		config.Auth = []ssh.AuthMethod{ssh.Password(conn.Password)}
-	} else {
-		key, err := os.ReadFile(fmt.Sprintf(`%s/.ssh/id_rsa`, os.Getenv("HOME")))
-		if err != nil {
-			return err
+	if conn.Config.PrivateKey != "" {
+		ssh.Key = conn.Config.PrivateKey
+	} else if conn.Config.AuthType == AuthModePassword {
+		ssh.Password = conn.Config.Password
+	} else if conn.Config.AuthType == AuthModeKey {
+		ssh.KeyPath = keyPath
+	}
+
+	if conn.ProxyConfig != nil {
+		ssh.Proxy = easyssh.DefaultConfig{
+			Server:  conn.ProxyConfig.Host,
+			User:    conn.ProxyConfig.Username,
+			Port:    fmt.Sprintf("%d", conn.ProxyConfig.Port),
+			Timeout: time.Second * 10,
 		}
 
-		signer, err := ssh.ParsePrivateKey(key)
-		if err != nil {
-			return err
+		if conn.ProxyConfig.PrivateKey != "" {
+			ssh.Proxy.Key = conn.ProxyConfig.PrivateKey
+		} else if conn.ProxyConfig.AuthType == AuthModePassword {
+			ssh.Proxy.Password = conn.ProxyConfig.Password
+		} else if conn.ProxyConfig.AuthType == AuthModeKey {
+			ssh.Proxy.KeyPath = keyPath
 		}
-
-		config.Auth = []ssh.AuthMethod{ssh.PublicKeys(signer)}
 	}
 
-	if conn.Port == 0 {
-		conn.Port = 22
-	}
-
-	dial, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", conn.Host, conn.Port), config)
-	if err != nil {
-		return err
-	}
-
-	conn.client = dial
+	session, client, err := ssh.Connect()
+	conn.session = session
+	conn.client = client
 	return err
 }
 
-func (conn *Connection) GetClient() *ssh.Client {
+func (conn *SSH) GetClient() *ssh.Client {
 	return conn.client
 }
 
-func (conn *Connection) OpenSession(retry bool) error {
+func (conn *SSH) OpenSession(retry bool) error {
 	s1, err := conn.client.NewSession()
 	if err != nil {
 		if !retry {
@@ -113,7 +123,7 @@ func (conn *Connection) OpenSession(retry bool) error {
 	return nil
 }
 
-func (conn *Connection) ExecPythonCode(py []byte) (*bytes.Buffer, error) {
+func (conn *SSH) ExecPythonCode(py []byte) (*bytes.Buffer, error) {
 	hash := sha1.Sum(py)
 	filename := fmt.Sprintf("/tmp/%x", hash)
 	buf, err := conn.WriteFile(filename, py)
@@ -129,7 +139,7 @@ func (conn *Connection) ExecPythonCode(py []byte) (*bytes.Buffer, error) {
 	return buf, nil
 }
 
-func (conn *Connection) WriteFile(name string, content []byte) (*bytes.Buffer, error) {
+func (conn *SSH) WriteFile(name string, content []byte) (*bytes.Buffer, error) {
 	b64 := base64.StdEncoding.EncodeToString(content)
 	buf, err := conn.ExecShellCode(fmt.Sprintf(`echo '%s' | base64 -d >%s`, b64, name))
 	if err != nil {
@@ -138,7 +148,7 @@ func (conn *Connection) WriteFile(name string, content []byte) (*bytes.Buffer, e
 	return buf, nil
 }
 
-func (conn *Connection) ExecShellCode(code string) (*bytes.Buffer, error) {
+func (conn *SSH) ExecShellCode(code string) (*bytes.Buffer, error) {
 	if err := conn.OpenSession(true); err != nil {
 		return nil, nil
 	}
@@ -155,6 +165,6 @@ func (conn *Connection) ExecShellCode(code string) (*bytes.Buffer, error) {
 	return buf, nil
 }
 
-func (conn *Connection) CloseSession() error {
+func (conn *SSH) CloseSession() error {
 	return conn.client.Close()
 }

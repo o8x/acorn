@@ -23,7 +23,7 @@ type OsRelease struct {
 	BugReportUrl string `json:"bug_report_url"`
 }
 
-func ListRemoteDir(conn *Connection, dir string) (string, error) {
+func ListRemoteDir(conn *SSH, dir string) (string, error) {
 	code := bytes.ReplaceAll(listdir, []byte("{dir}"), []byte(dir))
 	buf, err := conn.ExecPythonCode(code)
 	if err != nil {
@@ -33,7 +33,7 @@ func ListRemoteDir(conn *Connection, dir string) (string, error) {
 	return buf.String(), nil
 }
 
-func ProberOSInfo(conn *Connection) (*OsRelease, error) {
+func ProberOSInfo(conn *SSH) (*OsRelease, error) {
 	buf, err := conn.ExecPythonCode(proberOSInfo)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func ProberOSInfo(conn *Connection) (*OsRelease, error) {
 	return &osRelease, nil
 }
 
-func WriteFile(conn *Connection, name, content string) error {
+func WriteFile(conn *SSH, name, content string) error {
 	_, err := conn.WriteFile(name, []byte(content))
 	return err
 }

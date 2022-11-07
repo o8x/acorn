@@ -1,36 +1,39 @@
 package ssh
 
+import (
+	"fmt"
+	"strings"
+	"sync"
+)
+
 type Connections struct {
-	connections []*Connection
+	connections sync.Map
 }
 
-func (r *Connections) Add(c *Connection) {
-	r.connections = append(r.connections, c)
+func makeKey(c *SSH) string {
+	builder := strings.Builder{}
+	builder.WriteString(fmt.Sprintf("user:%s", c.Config.Username))
+	builder.WriteString(fmt.Sprintf("password:%s", c.Config.Password))
+	builder.WriteString(fmt.Sprintf("host:%s:%d", c.Config.Host, c.Config.Port))
+	builder.WriteString(fmt.Sprintf("authtype:%s", c.Config.AuthType))
+	builder.WriteString(fmt.Sprintf("proxyserver:%d", c.Config.ProxyServerID))
+
+	return builder.String()
 }
 
-func (r *Connections) Get(conn Connection) *Connection {
-	for _, c := range r.connections {
-		if conn.User == c.User && conn.Password == c.Password &&
-			conn.Host == c.Host && conn.Port == c.Port &&
-			conn.AuthMethod == c.AuthMethod {
-			return c
-		}
+func (r *Connections) Add(c *SSH) {
+	r.connections.Store(makeKey(c), c)
+}
+
+func (r *Connections) Get(conn *SSH) *SSH {
+	load, ok := r.connections.Load(makeKey(conn))
+	if ok {
+		return load.(*SSH)
 	}
 
 	return nil
 }
 
-func (r *Connections) Remove(conn Connection) {
-	i := 0
-	conns := r.connections
-	for _, c := range conns {
-		if conn.User == c.User && conn.Password == c.Password &&
-			conn.Host == c.Host && conn.Port == c.Port &&
-			conn.AuthMethod == c.AuthMethod {
-			conns[i] = c
-			i++
-		}
-	}
-
-	r.connections = conns[:i]
+func (r *Connections) Remove(conn *SSH) {
+	r.connections.Delete(makeKey(conn))
 }

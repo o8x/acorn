@@ -17,7 +17,7 @@ import {
     ToolOutlined,
 } from "@ant-design/icons"
 
-import {FileSystemService} from "../rpc"
+import {FileSystemService, SessionService} from "../rpc"
 
 const {Dragger} = Upload
 
@@ -48,9 +48,8 @@ export default function (props) {
             dir = await resolve(dir)
         }
 
-        window.runtime.EventsEmit("list_dir", id, dir)
-        window.runtime.EventsOnce("list_dir_reply", data => {
-            setTableLoading(false)
+        window.go.service.FileSystemService.ListDir(Number(id), dir).then(data => {
+            console.log(data)
             if (data.status_code === 500) {
                 return message.error(`列出${dir}目录失败: ${data.message}`)
             }
@@ -65,7 +64,7 @@ export default function (props) {
 
                 return dir
             })
-        })
+        }).finally(() => setTableLoading(false))
     }
 
     async function downloadFile(file) {
@@ -255,8 +254,7 @@ export default function (props) {
     }
 
     function SSHConnect(id, workdir) {
-        window.runtime.EventsEmit("open_ssh_session", [parseInt(id)], workdir)
-        window.runtime.EventsOnce("open_ssh_session_reply", data => {
+        SessionService.OpenSSHSession(parseInt(id), workdir).then(data => {
             if (data.status_code === 500) {
                 return message.error(data.message)
             }

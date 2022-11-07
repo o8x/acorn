@@ -25,6 +25,7 @@ import {SaveOutlined} from "@ant-design/icons"
 import TextArea from "antd/es/input/TextArea"
 import moment from "moment"
 import He from "../Components/He"
+import {SessionService} from "../rpc"
 
 const {Paragraph} = Typography
 
@@ -109,8 +110,11 @@ export default function (props) {
 
                 return <Card.Grid style={{width: "25%", textAlign: "left"}} key={it.id}>
                     <a onClick={() => {
-                        message.info("正在打开连接")
-                        window.runtime.EventsEmit("open_ssh_session", [it.id], "")
+                        SessionService.OpenSSHSession(it.id, "").then(data => {
+                            if (data.status_code === 500) {
+                                return message.error(data.message)
+                            }
+                        })
                     }}>
                         <Meta
                             avatar={<Avatar src={getLogoSrc(it.type)}/>}

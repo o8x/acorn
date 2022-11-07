@@ -3,6 +3,7 @@ module github.com/o8x/acorn
 go 1.18
 
 require (
+	github.com/appleboy/easyssh-proxy v1.3.9
 	github.com/mattn/go-sqlite3 v1.14.15
 	github.com/pkg/sftp v1.13.5
 	github.com/wailsapp/wails/v2 v2.0.0
@@ -11,7 +12,9 @@ require (
 )
 
 require (
+	github.com/ScaleFT/sshkeys v0.0.0-20200327173127-6142f742bca5 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
+	github.com/dchest/bcrypt_pbkdf v0.0.0-20150205184540-83f37f9c154a // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect

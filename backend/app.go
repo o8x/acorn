@@ -17,6 +17,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"github.com/o8x/acorn/backend/database"
+	"github.com/o8x/acorn/backend/model"
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/service"
 	"github.com/o8x/acorn/backend/ssh"
@@ -138,13 +139,13 @@ func (c *App) RegisterRouter(ctx context.Context) {
 	runtime.EventsOn(ctx, "add_connect", func(data ...interface{}) {
 		item := data[0].(map[string]interface{})
 
-		stmt, err := database.Get().Prepare(`insert into connect (type, label, username, port, host, params, auth_type, tags) values (?, ?, ?, ?, ?, ?, ?, ?)`)
+		stmt, err := database.Get().Prepare(`insert into connect (type, label, username, port, host, params, auth_type, tags, proxy_server_id) values (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
 		if err != nil {
 			runtime.EventsEmit(ctx, "add_connect_reply", response.Error(err))
 			return
 		}
 
-		if _, err := stmt.Exec(item["type"], item["label"], item["username"], item["port"], item["host"], item["params"], item["auth_type"], "[]"); err != nil {
+		if _, err := stmt.Exec(item["type"], item["label"], item["username"], item["port"], item["host"], item["params"], item["auth_type"], "[]", item["proxy_server_id"]); err != nil {
 			runtime.EventsEmit(ctx, "add_connect_reply", response.Error(err))
 			return
 		}
@@ -193,18 +194,6 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		runtime.EventsEmit(ctx, "top_connect_reply", response.NoContent())
 	})
 
-	runtime.EventsOn(ctx, "open_ssh_session", func(data ...interface{}) {
-		for _, id := range data[0].([]interface{}) {
-			id, ok := id.(float64)
-			if !ok {
-				continue
-			}
-			c.Connect.SSHConnect(int(id), data[1].(string))
-		}
-
-		runtime.EventsEmit(ctx, "open_ssh_session_reply", response.NoContent())
-	})
-
 	runtime.EventsOn(ctx, "open_local_console", func(data ...interface{}) {
 		runtime.EventsEmit(ctx, "open_local_console_reply", c.Connect.OpenLocalConsole())
 	})
@@ -247,12 +236,14 @@ func (c *App) RegisterRouter(ctx context.Context) {
 
 		if it.Type == "linux" {
 			getOsRelease := func(it ConnectItem) *ssh.OsRelease {
-				conn := ssh.New(ssh.Connection{
-					Host:       it.Host,
-					User:       it.UserName,
-					Port:       it.Port,
-					Password:   it.Password,
-					AuthMethod: it.AuthType,
+				conn := ssh.Start(ssh.SSH{
+					Config: model.Connect{
+						Host:     it.Host,
+						Username: it.UserName,
+						Port:     int64(it.Port),
+						Password: it.Password,
+						AuthType: it.AuthType,
+					},
 				})
 
 				if err := conn.Connect(); err != nil {
@@ -332,41 +323,6 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		runtime.EventsEmit(ctx, "get_recent_reply", response.OK(items))
 	})
 
-	runtime.EventsOn(ctx, "list_dir", func(data ...interface{}) {
-		var c ConnectItem
-		id, _ := strconv.ParseInt(data[0].(string), 10, 32)
-		if err := GetInfoByID(int(id), &c); err != nil {
-			runtime.EventsEmit(ctx, "list_dir_reply", response.Error(err))
-			return
-		}
-
-		if err := database.IntValueInc(FileTransferStatsKey); err != nil {
-			runtime.EventsEmit(ctx, "list_dir_reply", response.Error(err))
-			return
-		}
-
-		conn := ssh.New(ssh.Connection{
-			Host:       c.Host,
-			User:       c.UserName,
-			Port:       c.Port,
-			Password:   c.Password,
-			AuthMethod: c.AuthType,
-		})
-
-		if err := conn.Connect(); err != nil {
-			runtime.EventsEmit(ctx, "list_dir_reply", response.Error(err))
-			return
-		}
-
-		list, err := ssh.ListRemoteDir(conn, data[1].(string))
-		if err != nil {
-			runtime.EventsEmit(ctx, "list_dir_reply", response.Error(err))
-			return
-		}
-
-		runtime.EventsEmit(ctx, "list_dir_reply", response.OK(list))
-	})
-
 	runtime.EventsOn(ctx, "gen_script", func(data ...interface{}) {
 		var c ConnectItem
 
@@ -376,12 +332,14 @@ func (c *App) RegisterRouter(ctx context.Context) {
 			return
 		}
 
-		conn := ssh.New(ssh.Connection{
-			Host:       c.Host,
-			User:       c.UserName,
-			Port:       c.Port,
-			Password:   c.Password,
-			AuthMethod: c.AuthType,
+		conn := ssh.Start(ssh.SSH{
+			Config: model.Connect{
+				Host:     c.Host,
+				Username: c.UserName,
+				Port:     int64(c.Port),
+				Password: c.Password,
+				AuthType: c.AuthType,
+			},
 		})
 
 		if err := conn.Connect(); err != nil {
@@ -427,12 +385,14 @@ func (c *App) RegisterRouter(ctx context.Context) {
 			return
 		}
 
-		conn := ssh.New(ssh.Connection{
-			Host:       c.Host,
-			User:       c.UserName,
-			Port:       c.Port,
-			Password:   c.Password,
-			AuthMethod: c.AuthType,
+		conn := ssh.Start(ssh.SSH{
+			Config: model.Connect{
+				Host:     c.Host,
+				Username: c.UserName,
+				Port:     int64(c.Port),
+				Password: c.Password,
+				AuthType: c.AuthType,
+			},
 		})
 
 		if err := conn.Connect(); err != nil {
@@ -465,12 +425,14 @@ func (c *App) RegisterRouter(ctx context.Context) {
 			return
 		}
 
-		conn := ssh.New(ssh.Connection{
-			Host:       c.Host,
-			User:       c.UserName,
-			Port:       c.Port,
-			Password:   c.Password,
-			AuthMethod: c.AuthType,
+		conn := ssh.Start(ssh.SSH{
+			Config: model.Connect{
+				Host:     c.Host,
+				Username: c.UserName,
+				Port:     int64(c.Port),
+				Password: c.Password,
+				AuthType: c.AuthType,
+			},
 		})
 
 		if err := conn.Connect(); err != nil {
@@ -510,12 +472,14 @@ func (c *App) RegisterRouter(ctx context.Context) {
 			return
 		}
 
-		conn := ssh.New(ssh.Connection{
-			Host:       c.Host,
-			User:       c.UserName,
-			Port:       c.Port,
-			Password:   c.Password,
-			AuthMethod: c.AuthType,
+		conn := ssh.Start(ssh.SSH{
+			Config: model.Connect{
+				Host:     c.Host,
+				Username: c.UserName,
+				Port:     int64(c.Port),
+				Password: c.Password,
+				AuthType: c.AuthType,
+			},
 		})
 
 		if err := conn.Connect(); err != nil {
