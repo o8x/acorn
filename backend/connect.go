@@ -76,32 +76,6 @@ type ConnectItem struct {
 	TagsString    string        `json:"tags_string"`
 }
 
-func (c *Connect) TopConnect(id int) *response.Response {
-	var p ConnectItem
-	if err := GetInfoByID(id, &p); err != nil {
-		return response.Error(err)
-	}
-
-	if err := database.IntValueInc(TopStatsKey); err != nil {
-		return response.Error(err)
-	}
-
-	if err := c.updateLastUseTime(id); err != nil {
-		return response.Error(err)
-	}
-
-	filename, err := c.makeTTYScript("htop -d 10 || top -d 1", p)
-	if err != nil {
-		return response.Error(err)
-	}
-
-	if err = exec.Command("osascript", filename).Start(); err != nil {
-		return response.Error(err)
-	}
-
-	return response.NoContent()
-}
-
 func CreateRDPFile(it ConnectItem) (string, error) {
 	f, err := os.CreateTemp("", "*.rdp")
 	if err != nil {

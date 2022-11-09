@@ -182,8 +182,7 @@ export default function (props) {
     }
 
     const top = (item) => {
-        window.runtime.EventsEmit("top_connect", [item.id])
-        window.runtime.EventsOnce("top_connect_reply", data => {
+        SessionService.TopConnect(item.id).then(data => {
             if (data.status_code === 500) {
                 return message.error(data.message)
             }

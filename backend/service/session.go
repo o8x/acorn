@@ -41,8 +41,33 @@ func (s *SessionService) PingConnect() {
 
 }
 
-func (s *SessionService) TopConnect() {
+func (s *SessionService) TopConnect(id int64) *response.Response {
+	sess, err := s.DB.FindSession(s.Context, id)
+	if sess.Type == "windows" {
+		return response.Warn("unsupported windows")
+	}
 
+	if err := s.DB.StatsIncTop(s.Context); err != nil {
+		return response.Error(err)
+	}
+
+	if err = s.DB.UpdateSessionUseTime(s.Context, id); err != nil {
+		return response.Error(err)
+	}
+
+	sb, err := s.makeSSHArgs(sess)
+	sb.WriteString(`'htop -d 10 || top -d 1'`)
+
+	script, err := scripts.Create(fmt.Sprintf("ssh -t %s", sb.Join(" ")))
+	if err != nil {
+		return response.Error(err)
+	}
+
+	if err = scripts.Exec(script); err != nil {
+		return response.Error(err)
+	}
+
+	return response.NoContent()
 }
 
 func (s *SessionService) OpenRDPSession(id int64) *response.Response {
