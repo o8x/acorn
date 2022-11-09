@@ -29,7 +29,6 @@ func Create(commands string) (string, error) {
 	_ = temp.Close()
 
 	script = strings.ReplaceAll(script, "{commands}", fmt.Sprintf("bash %s", temp.Name()))
-	script = strings.ReplaceAll(script, "{workdir}", "")
 	f, err := utils.WriteTempFileAutoClose(script)
 	if err != nil {
 		return "", err
@@ -40,4 +39,13 @@ func Create(commands string) (string, error) {
 
 func Exec(file string) error {
 	return exec.Command("osascript", file).Start()
+}
+
+func Run(command string) error {
+	script, err := Create(command)
+	if err != nil {
+		return err
+	}
+
+	return Exec(script)
 }

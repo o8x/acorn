@@ -320,8 +320,7 @@ export default function (props) {
     }
 
     const openLocalConsole = () => {
-        window.runtime.EventsEmit("open_local_console")
-        window.runtime.EventsOnce("open_local_console_reply", data => {
+        SessionService.OpenLocalConsole().then(data => {
             if (data.status_code === 500) {
                 return message.error(data.message)
             }

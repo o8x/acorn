@@ -99,8 +99,16 @@ func (s *SessionService) OpenSSHSession(id int64, workdir string) *response.Resp
 	return response.NoContent()
 }
 
-func (s *SessionService) OpenLocalConsole() {
+func (s *SessionService) OpenLocalConsole() *response.Response {
+	if err := scripts.Run("clear"); err != nil {
+		return response.Error(err)
+	}
 
+	if err := s.DB.StatsIncLocalITerm(s.Context); err != nil {
+		return response.Error(err)
+	}
+
+	return response.NoContent()
 }
 
 func (s *SessionService) ImportRdpFile() {
