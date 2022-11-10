@@ -3,49 +3,64 @@ package scripts
 import (
 	_ "embed"
 	"fmt"
-	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/o8x/acorn/backend/utils"
+	"github.com/o8x/acorn/backend/utils/stringbuilder"
 )
 
 //go:embed iterm2.applescript
 var iterm2Script []byte
 
-func Create(commands string) (string, error) {
-	script := string(iterm2Script)
-
-	temp, err := os.CreateTemp("", "")
-	if _, err := temp.WriteString("set -ex;\n"); err != nil {
-		return "", err
-	}
-
-	if _, err := temp.WriteString(commands); err != nil {
-		return "", err
-	}
-
-	_ = temp.Sync()
-	_ = temp.Close()
-
-	script = strings.ReplaceAll(script, "{commands}", fmt.Sprintf("bash %s", temp.Name()))
-	f, err := utils.WriteTempFileAutoClose(script)
-	if err != nil {
-		return "", err
-	}
-
-	return f.Name(), nil
+type Script struct {
+	script   string
+	tempFile string
 }
 
-func Exec(file string) error {
-	return exec.Command("osascript", file).Start()
+type PrepareParams struct {
+	Commands string
+	Password string
 }
 
-func Run(command string) error {
-	script, err := Create(command)
+func (s *Script) Prepare(p PrepareParams) error {
+	var commands = ""
+	if p.Commands != "" {
+		sb := stringbuilder.Builder{}
+		sb.WriteString("#!/bin/sh")
+		sb.WriteString("set -ex;")
+		sb.WriteString(p.Commands)
+		sb.WriteString("unlink $0")
+		f, err := utils.WriteTempFileAutoClose(sb.Join("\n\n"))
+		if err != nil {
+			return err
+		}
+
+		commands = fmt.Sprintf("bash %s", f.Name())
+	}
+
+	s.script = strings.ReplaceAll(string(iterm2Script), "{password}", p.Password)
+	s.script = strings.ReplaceAll(s.script, "{commands}", commands)
+	tempFile, err := utils.WriteTempFileAutoClose(s.script)
 	if err != nil {
 		return err
 	}
+	s.tempFile = tempFile.Name()
+	return nil
+}
 
-	return Exec(script)
+func (s *Script) Exec() error {
+	return exec.Command("osascript", s.tempFile).Start()
+}
+
+func (s *Script) Run(p PrepareParams) error {
+	if err := s.Prepare(p); err != nil {
+		return fmt.Errorf("prepare error: %v", err)
+	}
+
+	if err := s.Exec(); err != nil {
+		return fmt.Errorf("exec error: %v", err)
+	}
+
+	return nil
 }

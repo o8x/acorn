@@ -58,12 +58,13 @@ func (s *SessionService) TopConnect(id int64) *response.Response {
 	sb, err := s.makeSSHArgs(sess)
 	sb.WriteString(`'htop -d 10 || top -d 1'`)
 
-	script, err := scripts.Create(fmt.Sprintf("ssh -t %s", sb.Join(" ")))
-	if err != nil {
-		return response.Error(err)
+	script := scripts.Script{}
+	params := scripts.PrepareParams{
+		Password: sess.Password,
+		Commands: fmt.Sprintf("ssh -t %s", sb.Join(" ")),
 	}
 
-	if err = scripts.Exec(script); err != nil {
+	if err = script.Run(params); err != nil {
 		return response.Error(err)
 	}
 
@@ -112,12 +113,13 @@ func (s *SessionService) OpenSSHSession(id int64, workdir string) *response.Resp
 		}
 	})
 
-	script, err := scripts.Create(fmt.Sprintf("ssh %s", sb.Join(" ")))
-	if err != nil {
-		return response.Error(err)
+	script := scripts.Script{}
+	params := scripts.PrepareParams{
+		Password: sess.Password,
+		Commands: fmt.Sprintf("ssh -t %s", sb.Join(" ")),
 	}
 
-	if err = scripts.Exec(script); err != nil {
+	if err = script.Run(params); err != nil {
 		return response.Error(err)
 	}
 
@@ -125,7 +127,10 @@ func (s *SessionService) OpenSSHSession(id int64, workdir string) *response.Resp
 }
 
 func (s *SessionService) OpenLocalConsole() *response.Response {
-	if err := scripts.Run("clear"); err != nil {
+	script := scripts.Script{}
+	params := scripts.PrepareParams{}
+
+	if err := script.Run(params); err != nil {
 		return response.Error(err)
 	}
 

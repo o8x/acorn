@@ -143,12 +143,12 @@ func (t ToolService) AesDecode(text string) *response.Response {
 }
 
 func (t ToolService) RunTestWithCurl(data any) *response.Response {
-	script, err := scripts.Create(t.GenCurlCommand(data))
-	if err != nil {
-		return response.Error(err)
+	script := scripts.Script{}
+	params := scripts.PrepareParams{
+		Commands: t.GenCurlCommand(data),
 	}
 
-	if err = scripts.Exec(script); err != nil {
+	if err := script.Run(params); err != nil {
 		return response.Error(err)
 	}
 
