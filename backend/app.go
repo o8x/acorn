@@ -170,18 +170,6 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		runtime.EventsEmit(ctx, "add_recent_reply", response.NoContent())
 	})
 
-	runtime.EventsOn(ctx, "ping_connect", func(data ...interface{}) {
-		for _, id := range data[0].([]interface{}) {
-			id, ok := id.(float64)
-			if !ok {
-				continue
-			}
-			c.Connect.PingConnect(int(id))
-		}
-
-		runtime.EventsEmit(ctx, "ping_connect_reply", response.NoContent())
-	})
-
 	runtime.EventsOn(ctx, "edit_connect", func(data ...interface{}) {
 		marshal, err := json.Marshal(data[0])
 		if err != nil {

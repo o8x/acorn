@@ -171,8 +171,7 @@ export default function (props) {
     }
 
     const ping = (item) => {
-        window.runtime.EventsEmit("ping_connect", [item.id])
-        window.runtime.EventsOnce("ping_connect_reply", data => {
+        SessionService.PingConnect(item.id).then(data => {
             if (data.status_code === 500) {
                 return message.error(data.message)
             }

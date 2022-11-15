@@ -73,34 +73,6 @@ type ConnectItem struct {
 	TagsString    string        `json:"tags_string"`
 }
 
-func (c *Connect) PingConnect(id int) *response.Response {
-	var p ConnectItem
-	if err := GetInfoByID(id, &p); err != nil {
-		return response.Error(err)
-	}
-
-	script := strings.ReplaceAll(string(iterm2Script), "{commands}", fmt.Sprintf("ping -c 10 %s", p.Host))
-
-	f, err := utils.WriteTempFileAutoClose(script)
-	if err != nil {
-		return response.Error(err)
-	}
-
-	if err = exec.Command("osascript", f.Name()).Start(); err != nil {
-		return response.Error(err)
-	}
-
-	if err := database.IntValueInc(PingStatsKey); err != nil {
-		return response.Error(err)
-	}
-
-	if err := c.updateLastUseTime(id); err != nil {
-		return response.Error(err)
-	}
-
-	return response.NoContent()
-}
-
 func (c *Connect) SCPDownload(ctx context.Context, id int, file string) *response.Response {
 	var p ConnectItem
 	if err := GetInfoByID(id, &p); err != nil {

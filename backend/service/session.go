@@ -38,8 +38,27 @@ func (s *SessionService) EditConnect() {
 
 }
 
-func (s *SessionService) PingConnect() {
+func (s *SessionService) PingConnect(id int64) *response.Response {
+	sess, err := s.DB.FindSession(s.Context, id)
+	if err := s.DB.StatsIncPing(s.Context); err != nil {
+		return response.Error(err)
+	}
 
+	if err = s.DB.UpdateSessionUseTime(s.Context, id); err != nil {
+		return response.Error(err)
+	}
+
+	script := scripts.Script{}
+	params := scripts.PrepareParams{
+		Password: sess.Password,
+		Commands: fmt.Sprintf("ping -c 10 %s", sess.Host),
+	}
+
+	if err = script.Run(params); err != nil {
+		return response.Error(err)
+	}
+
+	return response.NoContent()
 }
 
 func (s *SessionService) TopConnect(id int64) *response.Response {
