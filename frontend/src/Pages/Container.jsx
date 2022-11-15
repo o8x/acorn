@@ -4,11 +4,14 @@ import {OrderedListOutlined, ReloadOutlined, StopOutlined, ZoomInOutlined} from 
 import "./Container.css"
 import {TaskService} from "../rpc"
 import Editor from "../Components/Editor"
+import {useLocation} from "react-router-dom"
 
 const {Title, Paragraph} = Typography
 
 export default function (props) {
-    let [containerHeight, setContainerHeight] = useState(window.innerHeight - 72)
+    const headerHeight = useLocation().pathname === "/" ? 0 : 72
+
+    let [containerHeight, setContainerHeight] = useState(window.innerHeight - headerHeight)
     let [visible, setVisible] = useState(false)
     let [detailDrawer, setDetailDrawer] = useState(false)
     let [displayAll, setDisplayAll] = useState(false)
@@ -30,8 +33,7 @@ export default function (props) {
 
     useEffect(() => {
         reloadTasks()
-
-        window.onresize = () => setContainerHeight(window.innerHeight - 72)
+        window.onresize = () => setContainerHeight(window.innerHeight - headerHeight)
         return () => window.onresize = null
     }, [])
 
@@ -51,7 +53,7 @@ export default function (props) {
     }
 
     return <>
-        <div style={{"--wails-draggable": "drag"}}>
+        <div style={{"--wails-draggable": "drag"}} onDoubleClick={window.runtime.WindowToggleMaximise}>
             <Button className="open-task-btn" type="dashed" shape="text"
                     onClick={() => setVisible(true)} icon={<OrderedListOutlined/>}/>
             {props.title === "" && props.subTitle === "" ? "" : <PageHeader
@@ -99,7 +101,7 @@ export default function (props) {
                     renderItem={(item) => <>
                         <List.Item key={item}>
                             <List.Item.Meta
-                                title={<>{item.title} <Badge status="processing" /></>}
+                                title={<>{item.title} <Badge status="processing"/></>}
                                 description={item.description}
                             />
                             <Tooltip title="取消任务">
