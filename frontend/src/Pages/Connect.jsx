@@ -22,9 +22,10 @@ import {
 import Column from "antd/es/table/Column"
 import EditConnect, {OSList} from "./EditConnect"
 import {getLogoSrc} from "../Helpers/logo"
-import {SessionService} from "../rpc"
+import {SessionService, then} from "../rpc"
 
 export default function (props) {
+    let [all, setAll] = useState([])
     let [list, setList] = useState([])
     let [tags, setTags] = useState([])
     let [quickAddInput, setQuickAddInput] = useState("")
@@ -64,14 +65,15 @@ export default function (props) {
 
     const loadList = (keyword) => {
         setReloadListLoading(true)
-        window.runtime.EventsEmit("get_connects", keyword)
-        window.runtime.EventsOnce("set_connects", data => {
+        SessionService.QuerySessions(keyword).then(then(data => {
+            let list = data.body ? data.body : []
+            list.map(it => it.tags = JSON.parse(it.tags))
+            setList(list)
+
             setReloadListLoading(false)
-            if (data.status_code === 500) {
-                return message.error(data.message)
-            }
-            setList(data.body ? data.body : [])
-        })
+        }))
+
+        SessionService.GetSessions().then(then(data => setAll(data.body ? data.body : [])))
     }
 
     const SSHCopyID = (item) => {
@@ -88,8 +90,7 @@ export default function (props) {
         modalRef.current.setTitle("删除连接")
         modalRef.current.setContent(`即将删除连接: ${item.label}(${item.username}@${item.host})`)
         modalRef.current.show(() => {
-            window.runtime.EventsEmit("delete_connect", [item.id])
-            window.runtime.EventsOnce("delete_connect_reply", data => {
+            SessionService.DeleteConnect(item.id).then(data => {
                 if (data.status_code === 500) {
                     return message.error(data.message)
                 }
@@ -110,19 +111,10 @@ export default function (props) {
                 }}
             />), icon: null, onOk: () => {
                 item.label = labelInputRef.current
-                if (item.label === "") {
-                    item.label = "no label"
-                }
-
-                window.runtime.EventsEmit("edit_connect", item)
-                window.runtime.EventsOnce("edit_connect_reply", data => {
-                    if (data.status_code === 500) {
-                        return message.error(data.message)
-                    }
-
+                SessionService.UpdateSessionLabel(item).then(then(() => {
                     message.success("备注修改完成")
                     refresh()
-                })
+                }))
             },
         })
     }
@@ -340,32 +332,27 @@ export default function (props) {
     let [connectInfo, setConnectInfo] = useState(null)
     let [showEdit, setShowEdit] = useState(false)
     const editConnect = (values) => {
-        window.runtime.EventsEmit("edit_connect", values)
-        window.runtime.EventsOnce("edit_connect_reply", data => {
+        SessionService.UpdateSession(values).then(then(() => {
             setShowEdit(false)
-            if (data.status_code === 500) {
-                return message.error(data.message)
-            }
-
             loadList()
             message.success("连接信息修改完成")
-        })
+        }))
     }
 
     let [showAdd, setShowAdd] = useState(false)
     const addConnect = (values) => {
         const hide = message.loading(`正在添加: ${values.host}`, 0)
 
-        window.runtime.EventsEmit("add_connect", values)
-        window.runtime.EventsOnce("add_connect_reply", data => {
+        values.tags = JSON.stringify(values.tags)
+        SessionService.CreateSession(values).then(then(data => {
             hide()
+            message.success("添加完成")
+
             setShowAdd(false)
             setQuickAddInputLoading(false)
-            data.status_code === 204 ? message.success("添加完成") : message.error(`添加失败: ${data.message}`)
-
             setQuickAddInput("")
             refresh()
-        })
+        }))
     }
 
     return <Container title="远程连接" subTitle="快速连接SSH和进行双向文件传输" overflowHidden>
@@ -535,7 +522,7 @@ export default function (props) {
                     setShowEdit(false)
                 }}>删除</Button>
             }
-            proxyServers={list}
+            proxyServers={all}
         />
         <EditConnect
             title="添加连接"
@@ -547,12 +534,12 @@ export default function (props) {
                 username: "",
                 params: "",
                 host: "",
-                auth_type: "",
+                auth_type: "password",
                 tags: [],
             }}
             onClose={() => setShowAdd(false)}
             onSubmit={addConnect}
-            proxyServers={list}
+            proxyServers={all}
         />
         <CustomModal ref={modalRef}/>
     </Container>

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"github.com/o8x/acorn/backend/model"
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/scripts"
+	"github.com/o8x/acorn/backend/ssh"
 	"github.com/o8x/acorn/backend/utils/stringbuilder"
 )
 
@@ -26,16 +28,127 @@ func (s *SessionService) GetTags() {
 
 }
 
-func (s *SessionService) GetConnects() {
+func (s *SessionService) GetSessions() *response.Response {
+	sessions, err := s.DB.GetSessions(s.Context)
+	if err != nil {
+		return response.Error(err)
+	}
 
+	return response.OK(sessions)
 }
 
-func (s *SessionService) DeleteConnect() {
+func (s *SessionService) QuerySessions(keyword string) *response.Response {
+	if keyword == "" {
+		return s.GetSessions()
+	}
 
+	sessions, err := s.DB.QuerySessions(s.Context, model.QuerySessionsParams{
+		Host:     fmt.Sprintf("%%%s%%", keyword),
+		Username: fmt.Sprintf("%%%s%%", keyword),
+		Label:    fmt.Sprintf("%%%s%%", keyword),
+	})
+	if err != nil {
+		return response.Error(err)
+	}
+
+	return response.OK(sessions)
 }
 
-func (s *SessionService) EditConnect() {
+func (s *SessionService) DeleteConnect(id int64) *response.Response {
+	if _, err := s.DB.FindSession(s.Context, id); err != nil {
+		return response.Error(err)
+	}
 
+	if err := s.DB.DeleteSession(s.Context, id); err != nil {
+		return response.Error(err)
+	}
+
+	return response.NoContent()
+}
+
+type EditSessionParams struct {
+	model.UpdateSessionParams
+	Tags []any `json:"tags"`
+}
+
+func (s *SessionService) UpdateSession(it EditSessionParams) *response.Response {
+	t2 := &TagService{Service: s.Service}
+
+	var tags []interface{}
+	for _, t := range it.Tags {
+		if i, ok := t.(float64); ok {
+			tags = append(tags, i)
+		}
+
+		if i, ok := t.(string); ok {
+			id, err := t2.AddOne(i)
+			if err != nil {
+				continue
+			}
+
+			tags = append(tags, id)
+		}
+	}
+
+	bs, _ := json.Marshal(tags)
+	tagsString := string(bs)
+	if tagsString == "null" {
+		tagsString = "[]"
+	}
+
+	if it.Type == "linux" {
+		conn := ssh.Start(ssh.SSH{
+			Config: model.Connect{
+				Host:     it.Host,
+				Username: it.Username,
+				Port:     it.Port,
+				Password: it.Password,
+				AuthType: it.AuthType,
+			},
+		})
+
+		if err := conn.Connect(); err != nil {
+			return response.Error(err)
+		}
+
+		info, err := ssh.ProberOSInfo(conn)
+		if err != nil {
+			return response.Error(err)
+		}
+
+		it.Type = info.ID
+		if it.Label == "" {
+			it.Label = info.PrettyName
+		}
+	}
+
+	err := s.DB.UpdateSession(s.Context, model.UpdateSessionParams{
+		Type:          it.Type,
+		Label:         it.Label,
+		Username:      it.Username,
+		Password:      it.Password,
+		Port:          it.Port,
+		Host:          it.Host,
+		PrivateKey:    it.PrivateKey,
+		Tags:          tagsString,
+		ProxyServerID: it.ProxyServerID,
+		Params:        it.Params,
+		AuthType:      it.AuthType,
+		ID:            it.ID,
+	})
+	if err != nil {
+		return response.Error(err)
+	}
+
+	return response.NoContent()
+}
+
+func (s *SessionService) UpdateSessionLabel(it model.UpdateSessionLabelParams) *response.Response {
+	if err := s.DB.UpdateSessionLabel(s.Context, it); err != nil {
+		return response.Error(err)
+	}
+
+	return response.NoContent()
 }
 
 func (s *SessionService) PingConnect(id int64) *response.Response {
@@ -214,6 +327,10 @@ func (s *SessionService) ImportRdpFile() {
 
 }
 
-func (s *SessionService) AddConnect() {
+func (s *SessionService) CreateSession(connect model.CreateSessionParams) *response.Response {
+	if err := s.DB.CreateSession(s.Context, connect); err != nil {
+		return response.Error(err)
+	}
 
+	return response.NoContent()
 }

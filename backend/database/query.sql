@@ -11,6 +11,49 @@ from connect
 where id = ?
 limit 1;
 
+
+-- name: DeleteSession :exec
+delete
+from connect
+where id = ?;
+
+-- name: QuerySessions :many
+select *
+from connect
+where host like ?
+   or username like ?
+   or label like ?
+order by last_use_timestamp = 0 desc, last_use_timestamp desc;
+
+-- name: GetSessions :many
+select *
+from connect
+order by last_use_timestamp = 0 desc, last_use_timestamp desc;
+
+-- name: CreateSession :exec
+insert into connect (type, label, username, password, port, host, private_key, tags, proxy_server_id, params, auth_type)
+values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+-- name: UpdateSession :exec
+update connect
+set type            = ?,
+    label           = ?,
+    username        = ?,
+    password        = ?,
+    port            = ?,
+    host            = ?,
+    private_key     = ?,
+    tags            = ?,
+    proxy_server_id = ?,
+    params          = ?,
+    auth_type       = ?
+where id = ?;
+
+-- name: UpdateSessionLabel :exec
+update connect
+set label = ?
+where id = ?;
+
 /*TASKS ---------------------------------------------------------------------*/
 
 -- name: CreateTask :exec

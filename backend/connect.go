@@ -229,25 +229,6 @@ func (c *Connect) CloudDownload(id int, dir, link string) *response.Response {
 	return response.NoContent()
 }
 
-func (c *Connect) EditConnect(item ConnectItem) error {
-	var p ConnectItem
-	if err := GetInfoByID(item.ID, &p); err != nil {
-		return err
-	}
-
-	stmt, err := database.Get().Prepare("update connect set type = ?, label = ?, username = ?, password = ?, port = ?, host = ?, private_key = ?, params = ?, auth_type = ?, tags = ? , proxy_server_id = ? where id = ?")
-	if err != nil {
-		return err
-	}
-
-	_, err = stmt.Exec(item.Type, item.Label, item.UserName, item.Password, item.Port, item.Host, item.PrivateKey, item.Params, item.AuthType, item.TagsString, item.ProxyServerID, item.ID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (c *Connect) SSHCopyID(id int) *response.Response {
 	var p ConnectItem
 	if err := GetInfoByID(id, &p); err != nil {

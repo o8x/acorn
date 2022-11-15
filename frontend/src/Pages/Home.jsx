@@ -25,14 +25,12 @@ import {SaveOutlined} from "@ant-design/icons"
 import TextArea from "antd/es/input/TextArea"
 import moment from "moment"
 import He from "../Components/He"
-import {SessionService} from "../rpc"
+import {SessionService, then} from "../rpc"
 
 const {Paragraph} = Typography
 
 const tabs = [{
     key: "connect", tab: "连接",
-}, {
-    key: "recent", tab: "稍后阅读",
 }, {
     key: "bookmark", tab: "书签",
 }]
@@ -134,13 +132,7 @@ export default function (props) {
     }
 
     const loadList = () => {
-        window.runtime.EventsOnce("set_connects", data => {
-            if (data.status_code === 500) {
-                return message.error(data.message)
-            }
-
-            setConnects(data.body)
-        })
+        SessionService.GetSessions().then(then(data => setConnects(data.body ? data.body : [])))
 
         window.runtime.EventsOnce("get_stats_reply", data => {
             if (data.status_code === 500) {
@@ -170,7 +162,6 @@ export default function (props) {
             setRecent(data.body)
         })
 
-        window.runtime.EventsEmit("get_connects", "")
         window.runtime.EventsEmit("get_recent", "")
     }
 

@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -107,52 +106,6 @@ func (c *App) OnStartup(ctx context.Context, defaultMenu *menu.Menu) {
 func (c *App) RegisterRouter(ctx context.Context) {
 	c.Context = ctx
 
-	runtime.EventsOn(ctx, "delete_connect", func(data ...interface{}) {
-		for _, id := range data[0].([]interface{}) {
-			stmt, err := database.Get().Prepare(`delete from connect where id = ?`)
-			if err != nil {
-				runtime.EventsEmit(ctx, "delete_connect_reply", response.Error(err))
-				return
-			}
-
-			res, err := stmt.Exec(id)
-			if err != nil {
-				runtime.EventsEmit(ctx, "delete_connect_reply", response.Error(err))
-				return
-			}
-
-			affect, err := res.RowsAffected()
-			if err != nil {
-				runtime.EventsEmit(ctx, "delete_connect_reply", response.Error(err))
-				return
-			}
-
-			if affect > 0 {
-				runtime.EventsEmit(ctx, "delete_connect_reply", response.NoContent())
-				return
-			}
-
-			runtime.EventsEmit(ctx, "delete_connect_reply", response.Warn("删除失败"))
-		}
-	})
-
-	runtime.EventsOn(ctx, "add_connect", func(data ...interface{}) {
-		item := data[0].(map[string]interface{})
-
-		stmt, err := database.Get().Prepare(`insert into connect (type, label, username, port, host, params, auth_type, tags, proxy_server_id) values (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-		if err != nil {
-			runtime.EventsEmit(ctx, "add_connect_reply", response.Error(err))
-			return
-		}
-
-		if _, err := stmt.Exec(item["type"], item["label"], item["username"], item["port"], item["host"], item["params"], item["auth_type"], "[]", item["proxy_server_id"]); err != nil {
-			runtime.EventsEmit(ctx, "add_connect_reply", response.Error(err))
-			return
-		}
-
-		runtime.EventsEmit(ctx, "add_connect_reply", response.NoContent())
-	})
-
 	runtime.EventsOn(ctx, "add_recent", func(data ...interface{}) {
 		item := data[0].(map[string]interface{})
 
@@ -168,100 +121,6 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		}
 
 		runtime.EventsEmit(ctx, "add_recent_reply", response.NoContent())
-	})
-
-	runtime.EventsOn(ctx, "edit_connect", func(data ...interface{}) {
-		marshal, err := json.Marshal(data[0])
-		if err != nil {
-			runtime.EventsEmit(ctx, "edit_connect_reply", response.Error(err))
-			return
-		}
-
-		var it ConnectItem
-		if err := json.Unmarshal(marshal, &it); err != nil {
-			runtime.EventsEmit(ctx, "edit_connect_reply", response.Error(err))
-			return
-		}
-
-		// 处理TAG
-		var tags []interface{}
-		for _, t := range it.Tags {
-			if i, ok := t.(float64); ok {
-				tags = append(tags, i)
-			}
-
-			if i, ok := t.(string); ok {
-				id, err := c.TagService.AddOne(i)
-				if err != nil {
-					continue
-				}
-
-				tags = append(tags, id)
-			}
-		}
-
-		bs, _ := json.Marshal(tags)
-		it.TagsString = string(bs)
-		if it.TagsString == "null" {
-			it.TagsString = "[]"
-		}
-
-		if it.Type == "linux" {
-			getOsRelease := func(it ConnectItem) *ssh.OsRelease {
-				conn := ssh.Start(ssh.SSH{
-					Config: model.Connect{
-						Host:     it.Host,
-						Username: it.UserName,
-						Port:     int64(it.Port),
-						Password: it.Password,
-						AuthType: it.AuthType,
-					},
-				})
-
-				if err := conn.Connect(); err != nil {
-					return nil
-				}
-
-				if info, err := ssh.ProberOSInfo(conn); err == nil {
-					return info
-				}
-
-				return nil
-			}
-
-			if r := getOsRelease(it); r != nil {
-				it.Type = r.ID
-				if it.Label == "" {
-					it.Label = r.PrettyName
-				}
-			}
-		}
-
-		if it.Label == "no label" {
-			it.Label = ""
-		}
-
-		if err = c.Connect.EditConnect(it); err != nil {
-			runtime.EventsEmit(ctx, "edit_connect_reply", response.Error(err))
-			return
-		}
-
-		runtime.EventsEmit(ctx, "edit_connect_reply", response.NoContent())
-	})
-
-	runtime.EventsOn(ctx, "get_connects", func(data ...interface{}) {
-		keyword := ""
-		if len(data) > 0 && data[0] != nil {
-			keyword = data[0].(string)
-		}
-
-		items, err := c.Connect.GetAll(keyword)
-		if err != nil {
-			runtime.EventsEmit(ctx, "set_connects", response.Error(err))
-			return
-		}
-
-		runtime.EventsEmit(ctx, "set_connects", response.OK(items))
 	})
 
 	runtime.EventsOn(ctx, "get_recent", func(data ...interface{}) {
