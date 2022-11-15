@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/o8x/acorn/backend/model"
@@ -71,8 +72,57 @@ func (s *SessionService) TopConnect(id int64) *response.Response {
 	return response.NoContent()
 }
 
-func (s *SessionService) OpenRDPSession(id int64) *response.Response {
-	return nil
+func (s *SessionService) makeRDPFileForSession(sess model.Connect) (string, error) {
+	f, err := os.CreateTemp("", "*.rdp")
+	if err != nil {
+		return "", err
+	}
+
+	defer f.Close()
+
+	sb := stringbuilder.Builder{}
+	sb.WriteStringf("full address:s:%s:%d\n", sess.Host, sess.Port)
+	sb.WriteStringf("username:s:%s\n", sess.Username)
+	sb.WriteStringLn("screen mode id:i:2")
+	sb.WriteStringLn("session bpp:i:24")
+	sb.WriteStringLn("use multimon:i:0")
+	sb.WriteStringLn("redirectclipboard:i:1")
+	if _, err := f.Write(sb.Bytes()); err != nil {
+		return "", err
+	}
+
+	return f.Name(), nil
+}
+
+func (s *SessionService) OpenRDPSession(sess model.Connect) *response.Response {
+	if err := s.DB.StatsIncConnectRDP(s.Context); err != nil {
+		return response.Error(err)
+	}
+
+	if err := s.DB.UpdateSessionUseTime(s.Context, sess.ID); err != nil {
+		return response.Error(err)
+	}
+
+	filename, err := s.makeRDPFileForSession(sess)
+	if err != nil {
+		return response.Error(err)
+	}
+
+	script := scripts.Script{}
+	params := scripts.PrepareParams{
+		RDPFilename: filename,
+		Password:    sess.Password,
+	}
+
+	if err := script.PrepareRDP(params); err != nil {
+		return response.Error(err)
+	}
+
+	if err := script.Exec(); err != nil {
+		return response.Error(err)
+	}
+
+	return response.NoContent()
 }
 
 func (s *SessionService) makeSSHArgs(sess model.Connect) (*stringbuilder.Builder, error) {
@@ -95,7 +145,7 @@ func (s *SessionService) makeSSHArgs(sess model.Connect) (*stringbuilder.Builder
 func (s *SessionService) OpenSSHSession(id int64, workdir string) *response.Response {
 	sess, err := s.DB.FindSession(s.Context, id)
 	if sess.Type == "windows" {
-		return s.OpenRDPSession(id)
+		return s.OpenRDPSession(sess)
 	}
 
 	if err := s.DB.StatsIncConnectSSH(s.Context); err != nil {
@@ -148,5 +198,3 @@ func (s *SessionService) ImportRdpFile() {
 func (s *SessionService) AddConnect() {
 
 }
-
-// CIDR 计算器

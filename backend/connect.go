@@ -24,9 +24,6 @@ import (
 //go:embed scripts/iterm2.applescript
 var iterm2Script []byte
 
-//go:embed scripts/rdp.applescript
-var rdpScript []byte
-
 const (
 	ConnectSSHStatsKey      = "connect_sum_count"
 	ConnectRDPStatsKey      = "connect_rdp_sum_count"
@@ -74,76 +71,6 @@ type ConnectItem struct {
 	Workdir       string        `json:"-" yaml:"-"`
 	Tags          []interface{} `json:"tags"`
 	TagsString    string        `json:"tags_string"`
-}
-
-func CreateRDPFile(it ConnectItem) (string, error) {
-	f, err := os.CreateTemp("", "*.rdp")
-	if err != nil {
-		return "", err
-	}
-
-	l1 := fmt.Sprintf("full address:s:%s:%d\n", it.Host, it.Port)
-	l2 := fmt.Sprintf("username:s:%s\n", it.UserName)
-
-	_, _ = f.WriteString(l1)
-	_, _ = f.WriteString(l2)
-	_, _ = f.WriteString("screen mode id:i:2\n")
-	_, _ = f.WriteString("session bpp:i:24\n")
-	_, _ = f.WriteString("use multimon:i:0\n")
-	_, _ = f.WriteString("redirectclipboard:i:1")
-
-	if err = f.Close(); err != nil {
-		return "", err
-	}
-
-	return f.Name(), nil
-}
-
-func CreateRDPScript(file string, password string) (string, error) {
-	contents := string(rdpScript)
-	contents = strings.ReplaceAll(contents, "{rdp_file}", file)
-	contents = strings.ReplaceAll(contents, "{password}", password)
-
-	f, err := os.CreateTemp("", "*.applescript")
-	if err != nil {
-		return "", err
-	}
-
-	_, _ = f.WriteString(contents)
-	if err = f.Close(); err != nil {
-		return "", err
-	}
-
-	return f.Name(), nil
-}
-
-func (c *Connect) RDPConnect(p ConnectItem) *response.Response {
-	if err := database.IntValueInc(ConnectRDPStatsKey); err != nil {
-		return response.Error(err)
-	}
-
-	file, err := CreateRDPFile(p)
-	if err != nil {
-		return response.Error(err)
-	}
-
-	script, err := CreateRDPScript(file, p.Password)
-	if err != nil {
-		return response.Error(err)
-	}
-
-	script = strings.ReplaceAll(string(iterm2Script), "{commands}", fmt.Sprintf(`osascript %s`, script))
-
-	f, err := utils.WriteTempFileAutoClose(script)
-	if err != nil {
-		return response.Error(err)
-	}
-
-	if err = exec.Command("osascript", f.Name()).Start(); err != nil {
-		return response.Error(err)
-	}
-
-	return response.NoContent()
 }
 
 func (c *Connect) PingConnect(id int) *response.Response {

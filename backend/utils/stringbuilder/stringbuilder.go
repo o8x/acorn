@@ -14,6 +14,10 @@ func (b *Builder) WriteString(s string) {
 	b.queue = append(b.queue, s)
 }
 
+func (b *Builder) WriteStringLn(s string) {
+	b.queue = append(b.queue, s, "\n")
+}
+
 func (b *Builder) WriteStringf(format string, a ...any) {
 	s := fmt.Sprintf(format, a...)
 	b.queue = append(b.queue, s)

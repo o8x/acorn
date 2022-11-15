@@ -13,14 +13,31 @@ import (
 //go:embed iterm2.applescript
 var iterm2Script []byte
 
+//go:embed rdp.applescript
+var rdpScript []byte
+
 type Script struct {
 	script   string
 	tempFile string
 }
 
 type PrepareParams struct {
-	Commands string
-	Password string
+	Commands    string
+	Password    string
+	RDPFilename string
+}
+
+func (s *Script) PrepareRDP(p PrepareParams) error {
+	s.script = strings.ReplaceAll(string(rdpScript), "{password}", p.Password)
+	s.script = strings.ReplaceAll(s.script, "{rdp_file}", p.RDPFilename)
+
+	tempFile, err := utils.WriteTempFileAutoClose(s.script)
+	if err != nil {
+		return err
+	}
+	fmt.Println(tempFile.Name())
+	s.tempFile = tempFile.Name()
+	return nil
 }
 
 func (s *Script) Prepare(p PrepareParams) error {
