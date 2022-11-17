@@ -47,21 +47,24 @@ for it in os.listdir(target):
     isdir = os.path.isdir(file)
     mode = parse_mode(isdir, stat.S_IMODE(st.st_mode))
     mtime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(st.st_mtime))
+
     try:
         user = pwd.getpwuid(st.st_uid).pw_name
-        if not isdir:
-            if os.path.exists(file):
-                size = os.path.getsize(file)
-        files.append({
-            "name": it,
-            "isdir": isdir,
-            "size": size,
-            "mode": mode,
-            "mtime": mtime,
-            "user": user,
-        })
-    finally:
-        pass
+    except KeyError:
+        user = st.st_uid
+
+    if not isdir:
+        if os.path.exists(file):
+            size = os.path.getsize(file)
+
+    files.append({
+        "name": it,
+        "isdir": isdir,
+        "size": size,
+        "mode": mode,
+        "mtime": mtime,
+        "user": user,
+    })
 
 print(json.dumps({
     "cwd": os.path.abspath(target),
