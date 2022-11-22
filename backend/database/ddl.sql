@@ -51,10 +51,17 @@ create table if not exists recent
 create table if not exists tasks
 (
     id          INTEGER primary key autoincrement,
-    title       TEXT      default '' not null,
-    description TEXT      default '' not null,
-    command     TEXT      default '' not null, -- 要执行的命令
-    result      TEXT      default '' not null, -- 执行结果
-    status      int       default 0 not null,  -- "0 进行中，1 已完成，2 已过期，3 已取消，重试则复制一条相同的任务"
-    create_time timestamp default CURRENT_TIMESTAMP not null
+    uuid        varchar(36) default (lower(
+                hex(randomblob(4)) || '-' ||
+                hex(randomblob(2)) || '-' ||
+                hex(randomblob(2)) || '-' ||
+                hex(randomblob(2)) || '-' ||
+                hex(randomblob(6))
+        )) not null,
+    title       TEXT        default '' not null,
+    description TEXT        default '' not null,
+    command     TEXT        default '' not null,        -- 要执行的命令
+    result      TEXT        default '' not null,        -- 执行结果
+    status      varchar(32) default 'running' not null, -- running 进行中，success 执行成功，timeout 超时, error 执行错误, canceled 已取消，重试则复制一条相同的任务
+    create_time timestamp   default CURRENT_TIMESTAMP not null
 );

@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react"
-import {Layout, Menu} from "antd"
+import {Layout, Menu, notification} from "antd"
 import {Route, Routes, useNavigate} from "react-router-dom"
 
 import {
@@ -75,6 +75,29 @@ export default function (props) {
 
     useEffect(() => {
         setSelected(location.hash.replace("#", ""))
+
+        window.runtime.EventsOn("message", data => {
+            const config = {
+                message: data.title,
+                description: data.message,
+                duration: 2,
+            }
+
+            switch (data.type) {
+                case "success":
+                    notification.success(config)
+                    break
+                case "error":
+                    notification.error(config)
+                    break
+                case "warning":
+                    notification.warning(config)
+                    break
+                case "info":
+                    notification.info(config)
+                    break
+            }
+        })
     }, [])
 
     const onSelect = ({key}) => {

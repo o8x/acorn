@@ -5,12 +5,14 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/appleboy/easyssh-proxy"
+	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 
 	"github.com/o8x/acorn/backend/model"
@@ -100,6 +102,52 @@ func (conn *SSH) Connect() error {
 
 func (conn *SSH) GetClient() *ssh.Client {
 	return conn.client
+}
+
+func (conn *SSH) SCPUpload(srcName, dstName string) error {
+	client, err := sftp.NewClient(conn.GetClient())
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	src, err := os.OpenFile(srcName, os.O_RDONLY, 0777)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	dst, err := client.OpenFile(dstName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	_, err = io.Copy(dst, src)
+	return err
+}
+
+func (conn *SSH) SCPDownload(srcName string, dstName string) error {
+	client, err := sftp.NewClient(conn.GetClient())
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	dst, err := os.OpenFile(dstName, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0777)
+	if err != nil {
+		return err
+	}
+
+	src, err := client.OpenFile(srcName, os.O_RDONLY)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+	defer dst.Close()
+
+	_, err = io.Copy(dst, src)
+	return err
 }
 
 func (conn *SSH) OpenSession(retry bool) error {

@@ -19,6 +19,7 @@ import (
 	"github.com/o8x/acorn/backend/model"
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/service"
+	"github.com/o8x/acorn/backend/service/tasker"
 	"github.com/o8x/acorn/backend/ssh"
 	"github.com/o8x/acorn/backend/utils"
 )
@@ -101,6 +102,11 @@ func (c *App) OnStartup(ctx context.Context, defaultMenu *menu.Menu) {
 
 	parentService.DB = database.GetQueries()
 	parentService.Context = ctx
+	parentService.Message = &service.Message{Context: ctx}
+	parentService.Tasker = &tasker.Tasker{
+		Context: ctx,
+		DB:      database.GetQueries(),
+	}
 }
 
 func (c *App) RegisterRouter(ctx context.Context) {
@@ -192,14 +198,6 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		}
 
 		runtime.EventsEmit(ctx, "gen_script_reply", response.NoContent())
-	})
-
-	runtime.EventsOn(ctx, "download_files", func(data ...interface{}) {
-		id, _ := strconv.ParseInt(data[0].(string), 10, 32)
-
-		runtime.EventsEmit(ctx, "download_files_reply",
-			c.Connect.SCPDownload(ctx, int(id), data[1].(string)),
-		)
 	})
 
 	runtime.EventsOn(ctx, "remove_files", func(data ...interface{}) {
@@ -349,14 +347,6 @@ func (c *App) RegisterRouter(ctx context.Context) {
 		}
 
 		runtime.EventsEmit(ctx, "save_file_reply", response.NoContent())
-	})
-
-	runtime.EventsOn(ctx, "upload_files", func(data ...interface{}) {
-		id, _ := strconv.ParseInt(data[0].(string), 10, 32)
-
-		runtime.EventsEmit(ctx, "upload_files_reply",
-			c.Connect.SCPUpload(ctx, int(id), data[1].(string)),
-		)
 	})
 
 	runtime.EventsOn(ctx, "drag_upload_files", func(data ...interface{}) {

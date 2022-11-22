@@ -1,6 +1,16 @@
 import React, {useEffect, useState} from "react"
-import {Badge, Button, Drawer, List, message, PageHeader, Space, Switch, Tooltip, Typography} from "antd"
-import {OrderedListOutlined, ReloadOutlined, StopOutlined, ZoomInOutlined} from "@ant-design/icons"
+import {Button, Drawer, List, message, PageHeader, Space, Switch, Tag, Tooltip, Typography} from "antd"
+import {
+    CheckCircleOutlined,
+    ClockCircleOutlined,
+    CloseCircleOutlined,
+    MinusCircleOutlined,
+    OrderedListOutlined,
+    ReloadOutlined,
+    StopOutlined,
+    SyncOutlined,
+    ZoomInOutlined,
+} from "@ant-design/icons"
 import "./Container.css"
 import {TaskService} from "../rpc"
 import Editor from "../Components/Editor"
@@ -52,6 +62,22 @@ export default function (props) {
         })
     }
 
+    const statusIcon = {
+        success: <CheckCircleOutlined/>,
+        timeout: <ClockCircleOutlined/>,
+        running: <SyncOutlined spin/>,
+        error: <CloseCircleOutlined/>,
+        stop: <MinusCircleOutlined/>,
+    }
+
+    const statusTag = {
+        success: <Tag icon={statusIcon.success} color="success">已完成</Tag>,
+        timeout: <Tag icon={statusIcon.timeout} color="default">已超时</Tag>,
+        running: <Tag icon={statusIcon.running} color="processing">执行中</Tag>,
+        error: <Tag icon={statusIcon.error} color="error">已失败</Tag>,
+        stop: <Tag icon={statusIcon.stop} color="default">已取消</Tag>,
+    }
+
     return <>
         <div style={{"--wails-draggable": "drag"}} onDoubleClick={window.runtime.WindowToggleMaximise}>
             <Button className="open-task-btn" type="dashed" shape="text"
@@ -101,13 +127,17 @@ export default function (props) {
                     renderItem={(item) => <>
                         <List.Item key={item}>
                             <List.Item.Meta
-                                title={<>{item.title} <Badge status="processing"/></>}
+                                title={<>{item.title} {statusIcon[item.status]}</>}
                                 description={item.description}
                             />
-                            <Tooltip title="取消任务">
+                            {item.status === "running" ? <Tooltip title="取消任务">
                                 <Button danger icon={<StopOutlined/>} type="link"
                                         onClick={() => cancelTask(item)}/>
-                            </Tooltip>
+                            </Tooltip> : ""}
+                            {item.status === "error" || item.status === "timeout" ? <Tooltip title="取消任务">
+                                <Button danger icon={<StopOutlined/>} type="link"
+                                        onClick={() => cancelTask(item)}/>
+                            </Tooltip> : ""}
                             <Tooltip title="任务详情">
                                 <Button icon={<ZoomInOutlined/>} type="link"
                                         onClick={() => {
@@ -129,12 +159,13 @@ export default function (props) {
                 visible={detailDrawer}
             >
                 <Paragraph>{taskDetail.description}</Paragraph>
+                <Paragraph>状态：{statusTag[taskDetail.status]}</Paragraph>
                 <Paragraph>创建时间：{taskDetail.create_time}</Paragraph>
                 <Title level={5}>命令：</Title>
                 <Paragraph>
                     <Editor value={taskDetail.command} autowrap height="150px"/>
                 </Paragraph>
-                <Title level={5}>运行结果：</Title>
+                <Title level={5}>运行结果：<Switch size="small" defaultChecked/></Title>
                 <Paragraph>
                     <Editor value={taskDetail.result} height="150px"/>
                 </Paragraph>

@@ -17,7 +17,7 @@ import {
     ToolOutlined,
 } from "@ant-design/icons"
 
-import {FileSystemService, SessionService} from "../rpc"
+import {FileSystemService, SessionService, then} from "../rpc"
 
 const {Dragger} = Upload
 
@@ -65,18 +65,6 @@ export default function (props) {
                 return dir
             })
         }).finally(() => setTableLoading(false))
-    }
-
-    async function downloadFile(file) {
-        const path = await resolve(file.name)
-        window.runtime.EventsEmit("download_files", id, path)
-        window.runtime.EventsOnce("download_files_reply", data => {
-            if (data.status_code === 500) {
-                return message.error(`下载失败: ${data.message}`)
-            }
-
-            message.success(`已开始下载：${path}`)
-        })
     }
 
     async function removeFile(file) {
@@ -134,14 +122,13 @@ export default function (props) {
     }
 
     function uploadFile() {
-        window.runtime.EventsEmit("upload_files", id, wd)
-        window.runtime.EventsOnce("upload_files_reply", data => {
-            if (data.status_code === 500) {
-                return message.error(`上传到${wd}失败: ${data.message}`)
-            }
+        FileSystemService.UploadFiles(Number(id), wd).then(then(() => message.success(`后台上传已开始`)))
+    }
 
-            message.success(`正在将文件上传至： ${wd}，无法访问的文件将被忽略`)
-        })
+    async function downloadFile(file) {
+        const path = await resolve(file.name)
+
+        FileSystemService.DownloadFiles(Number(id), path).then(then(() => message.success(`后台下载已开始`)))
     }
 
     function cloudDownloadFile() {

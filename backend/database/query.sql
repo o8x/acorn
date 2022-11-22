@@ -56,9 +56,9 @@ where id = ?;
 
 /*TASKS ---------------------------------------------------------------------*/
 
--- name: CreateTask :exec
-insert into tasks (title, command, result, status)
-values (?, ?, ?, ?);
+-- name: CreateTask :one
+insert into tasks (title, command, description, result, status)
+values (?, ?, ?, ?, 'running') RETURNING *;
 
 -- name: CopyTask :exec
 insert into tasks (title, command, result, status)
@@ -71,25 +71,45 @@ select *
 from tasks
 order by id desc;
 
+-- name: FindTask :one
+select *
+from tasks
+where id = ?
+limit 1;
+
+-- name: FindTaskByUUID :one
+select *
+from tasks
+where uuid = ?
+limit 1;
+
 -- name: GetNormalTasks :many
 select *
 from tasks
-where status = 0
+where status = 'running'
+   or status = 'error'
+   or status = 'timeout'
 order by id desc;
 
 -- name: TaskCancel :exec
 update tasks
-set status = 3
+set status = 'canceled'
 where id = ?;
 
 -- name: TaskTimeout :exec
 update tasks
-set status = 2
+set status = 'timeout'
 where id = ?;
 
--- name: TaskDone :exec
+-- name: TaskSuccess :exec
 update tasks
-set status = 1
+set status = 'success'
+where id = ?;
+
+-- name: TaskError :exec
+update tasks
+set status = 'error',
+    result = ?
 where id = ?;
 
 -- name: UpdateTask :exec
@@ -100,10 +120,16 @@ set title   = ?,
     status  = ?
 where id = ?;
 
+-- name: UpdateTaskResult :exec
+update tasks
+set result = ?,
+    status = ?
+where id = ?;
+
 -- name: CloseTask :exec
 update tasks
 set result = ?,
-    status = 1
+    status = 'success'
 where id = ?;
 
 /*CONFIG ---------------------------------------------------------------------*/
