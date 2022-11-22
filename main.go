@@ -34,7 +34,6 @@ func main() {
 		Menu:          defaultMenu,
 		OnStartup: func(ctx context.Context) {
 			server.OnStartup(ctx, defaultMenu)
-			server.RegisterRouter(ctx)
 		},
 		Bind: []interface{}{
 			server.AppleScriptService,

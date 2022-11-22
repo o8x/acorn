@@ -25,14 +25,14 @@ import (
 )
 
 var (
-	parentService         = &service.Service{}
-	AppleScriptService    = &service.AppleScriptService{Service: parentService}
-	ConnectSessionService = &service.SessionService{Service: parentService}
-	FileSystemService     = &service.FileSystemService{Service: parentService}
-	StatsService          = &service.StatsService{Service: parentService}
-	TaskService           = &service.TaskService{Service: parentService}
-	ToolService           = &service.ToolService{Service: parentService}
-	TagService            = &service.TagService{Service: parentService}
+	base                  = &service.Service{}
+	AppleScriptService    = &service.AppleScriptService{Service: base}
+	ConnectSessionService = &service.SessionService{Service: base}
+	FileSystemService     = &service.FileSystemService{Service: base}
+	StatsService          = &service.StatsService{Service: base}
+	TaskService           = &service.TaskService{Service: base}
+	ToolService           = &service.ToolService{Service: base}
+	TagService            = &service.TagService{Service: base}
 )
 
 type App struct {
@@ -66,50 +66,67 @@ var (
 	DefaultFileName = filepath.Join(os.Getenv("HOME"), ".config", "acorn", "acorn.sqlite")
 )
 
-func (c *App) OnStartup(ctx context.Context, defaultMenu *menu.Menu) {
+func (c *App) OnStartup(ctx context.Context, currentMenus *menu.Menu) {
+	c.Context = ctx
+
+	c.initDatabase()
+	c.initBaseService()
+	c.registerMenus(currentMenus)
+	c.registerRouter(ctx)
+}
+
+func (c *App) initDatabase() {
 	if !utils.UnsafeFileExists(DefaultFileName) {
 		if err := database.AutoCreateDB(DefaultFileName); err != nil {
-			_, _ = runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
+			_, _ = runtime.MessageDialog(c.Context, runtime.MessageDialogOptions{
 				Type:    runtime.ErrorDialog,
 				Title:   "启动错误",
 				Message: fmt.Sprintf(`数据库%s初始化失败:  %s`, DefaultFileName, err.Error()),
 			})
-			runtime.Quit(ctx)
+			runtime.Quit(c.Context)
 		}
 	}
 
 	if err := database.Init(DefaultFileName); err != nil {
-		_, _ = runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
+		_, _ = runtime.MessageDialog(c.Context, runtime.MessageDialogOptions{
 			Type:    runtime.ErrorDialog,
 			Title:   "启动错误",
 			Message: fmt.Sprintf(`数据库%s连接失败:  %s`, DefaultFileName, err.Error()),
 		})
-		runtime.Quit(ctx)
-	}
-
-	FileMenu := defaultMenu.AddSubmenu("Setting Manage")
-	FileMenu.AddText("Export Connects To Yaml", keys.CmdOrCtrl("o"), func(data *menu.CallbackData) {
-		c.Connect.ExportAll(ctx)
-	})
-	FileMenu.AddText("Import Connects From Yaml", keys.CmdOrCtrl("i"), func(data *menu.CallbackData) {
-		utils.Message(ctx, "尚未实现")
-	})
-
-	FileMenu.AddSeparator()
-
-	runtime.MenuSetApplicationMenu(ctx, defaultMenu)
-	runtime.MenuUpdateApplicationMenu(ctx)
-
-	parentService.DB = database.GetQueries()
-	parentService.Context = ctx
-	parentService.Message = &service.Message{Context: ctx}
-	parentService.Tasker = &tasker.Tasker{
-		Context: ctx,
-		DB:      database.GetQueries(),
+		runtime.Quit(c.Context)
 	}
 }
 
-func (c *App) RegisterRouter(ctx context.Context) {
+func (c *App) initBaseService() {
+	base.DB = database.GetQueries()
+	base.Context = c.Context
+	base.Message = &service.Message{Context: c.Context}
+	base.Tasker = &tasker.Tasker{
+		Context: c.Context,
+		DB:      database.GetQueries(),
+	}
+}
+func (c *App) registerMenus(current *menu.Menu) {
+	terminalMenu := current.AddSubmenu("Terminal")
+	terminalMenu.AddText("New Terminal Window", keys.CmdOrCtrl("t"), func(data *menu.CallbackData) {
+		c.ConnectSessionService.OpenLocalConsole()
+	})
+
+	fileMenu := current.AddSubmenu("Settings")
+	fileMenu.AddText("Export", keys.CmdOrCtrl("w"), func(data *menu.CallbackData) {
+		c.Connect.ExportAll(c.Context)
+	})
+	fileMenu.AddText("Import", keys.CmdOrCtrl("i"), func(data *menu.CallbackData) {
+		utils.Message(c.Context, "尚未实现")
+	})
+
+	fileMenu.AddSeparator()
+
+	runtime.MenuSetApplicationMenu(c.Context, current)
+	runtime.MenuUpdateApplicationMenu(c.Context)
+}
+
+func (c *App) registerRouter(ctx context.Context) {
 	c.Context = ctx
 
 	runtime.EventsOn(ctx, "add_recent", func(data ...interface{}) {
