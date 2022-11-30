@@ -55,7 +55,7 @@ export default function () {
             setTarget("https://stdout.com.cn/ip?trace&json")
         }
         if (d.indexOf("download") !== -1) {
-            setTarget("https://mirrors.aliyun.com/centos/8/BaseOS/x86_64/os/images/boot.iso")
+            setTarget("https://dl.google.com/chrome/mac/universal/stable/GGRO/googlechrome.dmg")
         }
         setArgs(d)
     }
