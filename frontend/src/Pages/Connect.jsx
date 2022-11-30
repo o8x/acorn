@@ -499,7 +499,7 @@ export default function (props) {
                             <a key="list-conn" onClick={() => SSHConnect(item)}>连接</a>
                             {
                                 isNT ? <a href="#" disabled>传输</a> :
-                                    <Link to={`/transfer/${btoa(encodeURIComponent(JSON.stringify(item)))}`}>传输</Link>
+                                    <Link to={`/toy-remote/transfer/${btoa(encodeURIComponent(JSON.stringify(item)))}`}>传输</Link>
                             }
                             <a key="list-edit" onClick={() => {
                                 setConnectInfo(item)

@@ -49,20 +49,20 @@ function getItem(label, key, icon, children, type) {
 
 const items = [
     getItem("Home", "/", <HomeOutlined/>),
-    getItem("Sessions", "/connect", <ApartmentOutlined/>),
-    getItem("Codec", "/tools/textcodec", <FieldStringOutlined/>),
-    getItem("Json beautifier", "/tools/json", <FormatPainterOutlined/>),
-    getItem("Regular expression", "/tools/regtest", <CheckOutlined/>),
-    getItem("Radix", "/tools/radix", <FunctionOutlined/>),
-    getItem("Timestamp", "/tools/timestamp", <ClockCircleOutlined/>),
-    getItem("cURL GUI", "/tools/proxyiptester", <BugOutlined/>),
-    getItem("Toys", "/tools/toys", <ToolOutlined/>, [
-        getItem("Clock", "/tools/clock", <FieldTimeOutlined/>),
-        getItem("Script", "/tools/scripteditor", <EditOutlined/>),
-        getItem("Password", "/tools/makepass", <CreditCardOutlined/>),
-        getItem("Ascii", "/tools/ascii", <BorderlessTableOutlined/>, [
-            getItem("Visible chars", "/tools/ascii/visible", <EyeOutlined/>),
-            getItem("Control chars", "/tools/ascii/control", <ControlOutlined/>),
+    getItem("Sessions", "/toy-remote", <ApartmentOutlined/>),
+    getItem("Codec", "/toy-textcodec", <FieldStringOutlined/>),
+    getItem("Json beautifier", "/toy-json", <FormatPainterOutlined/>),
+    getItem("Regular expression", "/toy-regtest", <CheckOutlined/>),
+    getItem("Radix", "/toy-radix", <FunctionOutlined/>),
+    getItem("Timestamp", "/toy-timestamp", <ClockCircleOutlined/>),
+    getItem("cURL GUI", "/toy-proxyiptester", <BugOutlined/>),
+    getItem("Toys", "/toy-toys", <ToolOutlined/>, [
+        getItem("Clock", "/toy-clock", <FieldTimeOutlined/>),
+        getItem("Script", "/toy-scripteditor", <EditOutlined/>),
+        getItem("Password", "/toy-makepass", <CreditCardOutlined/>),
+        getItem("Ascii", "/toy-ascii", <BorderlessTableOutlined/>, [
+            getItem("Visible chars", "/toy-ascii/visible", <EyeOutlined/>),
+            getItem("Control chars", "/toy-ascii/control", <ControlOutlined/>),
         ]),
     ]),
 ]
@@ -120,40 +120,40 @@ export default function (props) {
         <Layout className="site-layout">
             <Content>
                 <Routes>
-                    <Route path="/transfer/:id"
+                    <Route path="/toy-remote/transfer/:id"
                            element={<Transfer collapsed={collapsed} setCollapse={setCollapsed}/>}
                     />
-                    <Route path="/tools/radix"
+                    <Route path="/toy-radix"
                            element={<TransRadix collapsed={collapsed} setCollapse={setCollapsed}/>}/>}
                     />
-                    <Route path="/tools/json"
+                    <Route path="/toy-json"
                            element={<JsonFormat collapsed={collapsed} setCollapse={setCollapsed}/>}/>}
                     />
-                    <Route path="/tools/regtest"
+                    <Route path="/toy-regtest"
                            element={<RegTest collapsed={collapsed} setCollapse={setCollapsed}/>}/>}
                     />
-                    <Route path="/tools/textcodec"
+                    <Route path="/toy-textcodec"
                            element={<TextCodec collapsed={collapsed} setCollapse={setCollapsed}/>}/>}
                     />
-                    <Route path="/tools/makepass"
+                    <Route path="/toy-makepass"
                            element={<MakePassword collapsed={collapsed} setCollapse={setCollapsed}/>}/>}
                     />
-                    <Route path="/tools/timestamp"
+                    <Route path="/toy-timestamp"
                            element={<Timestamp collapsed={collapsed} setCollapse={setCollapsed}/>}/>}
                     />
-                    <Route path="/tools/ascii/:type"
+                    <Route path="/toy-ascii/:type"
                            element={<ASCIITable collapsed={collapsed} setCollapse={setCollapsed}/>}/>}
                     />
-                    <Route path="/tools/clock/"
+                    <Route path="/toy-clock/"
                            element={<Clock collapsed={collapsed} setCollapse={setCollapsed}/>}/>}
                     />
-                    <Route path="/tools/scripteditor/"
+                    <Route path="/toy-scripteditor/"
                            element={<ScriptEditor collapsed={collapsed} setCollapse={setCollapsed}/>}/>}
                     />
-                    <Route path="/tools/proxyiptester/"
+                    <Route path="/toy-proxyiptester/"
                            element={<ProxyIPTester collapsed={collapsed} setCollapse={setCollapsed}/>}/>}
                     />
-                    <Route path="/connect"
+                    <Route path="/toy-remote"
                            element={<Connect collapsed={collapsed} setCollapse={setCollapsed}/>}
                     />
                     <Route path="/"
