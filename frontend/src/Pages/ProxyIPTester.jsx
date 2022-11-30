@@ -60,7 +60,7 @@ export default function () {
         setArgs(d)
     }
 
-    return <Container title="代理IP测试工具" subTitle="使用 curl 执行命令进行代理IP测试">
+    return <Container title="cURL GUI" subTitle="简单的 cURL 客户端">
         <Form labelCol={{span: 4}} wrapperCol={{span: 16}}>
             <Form.Item label="方法">
                 <Radio.Group value={method} onChange={(val) => setMethod(val.target.value)}>
