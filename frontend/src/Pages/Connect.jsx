@@ -196,6 +196,7 @@ export default function (props) {
             port: 22,
             params: "-o StrictHostKeyChecking=no",
             host: "",
+            tags: [],
             auth_type: "password",
         }
 
