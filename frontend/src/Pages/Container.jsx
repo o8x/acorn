@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react"
 import {Button, Drawer, List, message, PageHeader, Space, Switch, Tag, Tooltip, Typography} from "antd"
 import {
+    ArrowLeftOutlined,
     CheckCircleOutlined,
     ClockCircleOutlined,
     CloseCircleOutlined,
@@ -78,12 +79,20 @@ export default function (props) {
         stop: <Tag icon={statusIcon.stop} color="default">已取消</Tag>,
     }
 
+    const backBtn = <Button
+        shape="circle" type="text"
+        icon={<ArrowLeftOutlined/>}
+        onClick={() => history.back(-1)}
+    />
+
     return <>
         <div style={{"--wails-draggable": "drag"}} onDoubleClick={window.runtime.WindowToggleMaximise}>
             <Button className="open-task-btn" type="dashed" shape="text"
                     onClick={() => setVisible(true)} icon={<OrderedListOutlined/>}/>
             {props.title === "" && props.subTitle === "" ? "" : <PageHeader
-                title={props.title}
+                title={
+                    <>{location.hash.split("/").length > 2 ? backBtn : null}{props.title}</>
+                }
                 subTitle={props.subTitle}
             />}
         </div>
