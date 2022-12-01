@@ -33,6 +33,7 @@ var (
 	TaskService           = &service.TaskService{Service: base}
 	ToolService           = &service.ToolService{Service: base}
 	TagService            = &service.TagService{Service: base}
+	AutomationService     = &service.AutomationService{Service: base}
 )
 
 type App struct {
@@ -47,6 +48,7 @@ type App struct {
 	TaskService           *service.TaskService
 	ToolService           *service.ToolService
 	TagService            *service.TagService
+	AutomationService     *service.AutomationService
 }
 
 func New() *App {
@@ -57,6 +59,7 @@ func New() *App {
 		FileSystemService:     FileSystemService,
 		StatsService:          StatsService,
 		TaskService:           TaskService,
+		AutomationService:     AutomationService,
 		ToolService:           ToolService,
 		TagService:            TagService,
 	}
