@@ -6,6 +6,7 @@ export const FileSystemService = window.go.service.FileSystemService
 export const ToolService = window.go.service.ToolService
 export const StatsService = window.go.service.StatsService
 export const TaskService = window.go.service.TaskService
+export const AutomationService = window.go.service.AutomationService
 
 export function then(fn) {
     return data => {
@@ -21,4 +22,8 @@ export function then(fn) {
             fn(data)
         }
     }
+}
+
+export function success(msg) {
+    return then(() => message.success(msg))
 }

@@ -58,7 +58,8 @@ where id = ?;
 
 -- name: GetAutomations :many
 select *
-from automation;
+from automation
+order by id desc;
 
 -- name: FindAutomation :one
 select *
@@ -69,6 +70,15 @@ limit 1;
 -- name: UpdateAutomationRunCount :exec
 update automation
 set run_count = (run_count + 1)
+where id = ?;
+
+-- name: CreateAutomation :exec
+insert into automation (name, desc, playbook, bind_session_id)
+values (?, ?, ?, ?);
+
+-- name: DeleteAutomation :exec
+delete
+from automation
 where id = ?;
 
 -- name: UpdateAutomation :exec

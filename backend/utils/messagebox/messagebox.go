@@ -38,3 +38,19 @@ func SelectFiles(ctx context.Context) []string {
 
 	return sFiles
 }
+
+func SelectFile(ctx context.Context) string {
+	file, err := runtime.OpenFileDialog(ctx, runtime.OpenDialogOptions{
+		Title:                      "选择文件",
+		ShowHiddenFiles:            true,
+		CanCreateDirectories:       true,
+		ResolvesAliases:            true,
+		TreatPackagesAsDirectories: true,
+	})
+
+	if err != nil {
+		return ""
+	}
+
+	return file
+}

@@ -17,6 +17,7 @@ import {
     FormatPainterOutlined,
     FunctionOutlined,
     HomeOutlined,
+    RobotOutlined,
     ToolOutlined,
 } from "@ant-design/icons"
 
@@ -34,6 +35,7 @@ import ASCIITable from "./Pages/ASCIITable"
 import Clock from "./Pages/Clock"
 import Home from "./Pages/Home"
 import ProxyIPTester from "./Pages/ProxyIPTester"
+import Automation from "./Pages/Automation"
 
 const {Content, Sider} = Layout
 
@@ -50,6 +52,7 @@ function getItem(label, key, icon, children, type) {
 const items = [
     getItem("Home", "/", <HomeOutlined/>),
     getItem("Sessions", "/toy-remote", <ApartmentOutlined/>),
+    getItem("Automation", "/toy-automation", <RobotOutlined/>),
     getItem("Codec", "/toy-textcodec", <FieldStringOutlined/>),
     getItem("Json beautifier", "/toy-json", <FormatPainterOutlined/>),
     getItem("Regular expression", "/toy-regtest", <CheckOutlined/>),
@@ -155,6 +158,9 @@ export default function (props) {
                     />
                     <Route path="/toy-remote"
                            element={<Connect collapsed={collapsed} setCollapse={setCollapsed}/>}
+                    />
+                    <Route path="/toy-automation"
+                           element={<Automation collapsed={collapsed} setCollapse={setCollapsed}/>}
                     />
                     <Route path="/"
                            element={<Home collapsed={collapsed} setCollapse={setCollapsed}/>}
