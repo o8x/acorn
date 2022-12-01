@@ -65,3 +65,33 @@ create table if not exists tasks
     status      varchar(32) default 'running' not null, -- running 进行中，success 执行成功，timeout 超时, error 执行错误, canceled 已取消，重试则复制一条相同的任务
     create_time timestamp   default CURRENT_TIMESTAMP not null
 );
+
+create table if not exists automation
+(
+    id              INTEGER primary key autoincrement,
+    name            TEXT      default '' not null,
+    desc            TEXT      default '' not null,
+    playbook        TEXT      default '' not null,
+    run_count       int       default 0 not null,
+    bind_session_id TEXT      default '[]' not null,
+    create_time     timestamp default CURRENT_TIMESTAMP not null
+);
+
+create table if not exists automation
+(
+    id              INTEGER primary key autoincrement,
+    name            TEXT      default '' not null,
+    desc            TEXT      default '' not null,
+    playbook        TEXT      default '' not null,
+    run_count       int       default 0 not null,
+    bind_session_id TEXT      default '[]' not null,
+    create_time     timestamp default CURRENT_TIMESTAMP not null
+);
+
+create table if not exists automation_logs
+(
+    id            INTEGER primary key autoincrement,
+    automation_id int       default 0 not null,
+    contents      TEXT      default '' not null,
+    create_time   timestamp default CURRENT_TIMESTAMP not null
+);

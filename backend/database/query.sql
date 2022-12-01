@@ -54,6 +54,46 @@ update connect
 set label = ?
 where id = ?;
 
+/*AUTOMATIONS ------------------------------------------------------------------*/
+
+-- name: GetAutomations :many
+select *
+from automation;
+
+-- name: FindAutomation :one
+select *
+from automation
+where id = ?
+limit 1;
+
+-- name: UpdateAutomationRunCount :exec
+update automation
+set run_count = (run_count + 1)
+where id = ?;
+
+-- name: UpdateAutomation :exec
+update automation
+set playbook = ?,
+    name     = ?,
+    desc     = ?
+where id = ?;
+
+-- name: GetAutomationLogs :many
+select automation_logs.*
+from automation_logs
+         join automation on automation.id = automation_logs.automation_id
+where automation_id = ?
+order by automation.id desc;
+
+-- name: CreateAutomationLog :one
+insert into automation_logs (automation_id, contents)
+values (?, '') RETURNING id;
+
+-- name: AppendAutomationLog :exec
+update automation_logs
+set contents = contents || ?
+where id = ?;
+
 /*TASKS ---------------------------------------------------------------------*/
 
 -- name: CreateTask :one
