@@ -207,7 +207,6 @@ func (conn *SSH) ExecShellCode(code string) (*bytes.Buffer, error) {
 	if err := conn.session.Run(code); err != nil {
 		return nil, err
 	}
-	fmt.Println("run code:", code, "output:", buf.String())
 
 	_ = conn.session.Close()
 	return buf, nil

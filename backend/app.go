@@ -170,7 +170,6 @@ func (c *App) registerRouter(ctx context.Context) {
 			if err != nil {
 				continue
 			}
-			fmt.Println(p)
 			items = append(items, p)
 		}
 
@@ -293,7 +292,6 @@ func (c *App) registerRouter(ctx context.Context) {
 		}
 		defer client.Close()
 
-		fmt.Println(data[1].(string))
 		file, err := client.OpenFile(data[1].(string), os.O_RDONLY)
 		if err != nil {
 			runtime.EventsEmit(ctx, "edit_file_reply", response.Error(err))

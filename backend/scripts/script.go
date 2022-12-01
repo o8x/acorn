@@ -35,7 +35,6 @@ func (s *Script) PrepareRDP(p PrepareParams) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(tempFile.Name())
 	s.tempFile = tempFile.Name()
 	return nil
 }

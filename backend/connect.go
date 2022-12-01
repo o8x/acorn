@@ -138,8 +138,6 @@ func (c *Connect) CloudDownload(id int, dir, link string) *response.Response {
 		return response.Error(err)
 	}
 
-	fmt.Println(script)
-
 	if err = exec.Command("osascript", script).Start(); err != nil {
 		return response.Error(err)
 	}
@@ -241,8 +239,6 @@ func (c *Connect) CreateScript(cmdline string, autoClose bool, p ConnectItem) (s
 	script = strings.ReplaceAll(script, "{password}", p.Password)
 	script = strings.ReplaceAll(script, "{commands}", cmdline)
 	script = strings.ReplaceAll(script, "{auto_close}", fmt.Sprintf("%v", autoClose))
-
-	fmt.Println(script)
 
 	f, err := utils.WriteTempFileAutoClose(script)
 	if err != nil {
