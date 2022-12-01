@@ -96,6 +96,7 @@ export default function (props) {
             maxWidth="100%"
             extensions={extensions}
             theme={xcodeLight}
+            readOnly={!!props.readonly}
             onChange={(value, _) => {
                 if (props.onChange) {
                     props.onChange(value)
