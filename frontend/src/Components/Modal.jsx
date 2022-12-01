@@ -51,7 +51,7 @@ export default class CustomModal extends React.Component {
                       style={this.state.style}
                       onOk={() => {
                           this.close()
-                          this.state.handleOK()
+                          this.state.handleOK ? this.state.handleOK() : ""
                       }}
                       onCancel={() => {
                           this.close()
