@@ -66,7 +66,7 @@ func (conn *SSH) Connect() error {
 		Server:  conn.Config.Host,
 		User:    conn.Config.Username,
 		Port:    fmt.Sprintf("%d", conn.Config.Port),
-		Timeout: time.Second * 10,
+		Timeout: time.Second * 5,
 	}
 
 	if conn.Config.PrivateKey != "" {
@@ -151,6 +151,10 @@ func (conn *SSH) SCPDownload(srcName string, dstName string) error {
 }
 
 func (conn *SSH) OpenSession(retry bool) error {
+	if err := conn.Connect(); err != nil {
+		return err
+	}
+
 	s1, err := conn.client.NewSession()
 	if err != nil {
 		if !retry {
