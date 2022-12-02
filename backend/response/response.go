@@ -8,6 +8,17 @@ type Response struct {
 	Body       interface{} `json:"body,omitempty"`
 }
 
+func (r Response) IsError() (string, bool) {
+	if r.StatusCode == http.StatusInternalServerError {
+		return r.Message, true
+	}
+	return "", false
+}
+
+func (r Response) IsNormal() bool {
+	return r.StatusCode <= http.StatusNoContent
+}
+
 func OK(body interface{}) *Response {
 	return &Response{
 		StatusCode: http.StatusOK,

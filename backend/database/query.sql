@@ -184,35 +184,29 @@ where id = ?;
 
 /*CONFIG ---------------------------------------------------------------------*/
 
--- name: InitStatsKey :exec
+-- name: CreateConfigKey :exec
 insert into config (key, value)
-values ('connect_sum_count', 0);
-insert into config (key, value)
-values ('connect_rdp_sum_count', 0);
-insert into config (key, value)
-values ('ping_sum_count', 0);
-insert into config (key, value)
-values ('top_sum_count', 0);
-insert into config (key, value)
-values ('scp_upload_sum_count', 0);
-insert into config (key, value)
-values ('scp_upload_base64_sum_count"', 0);
-insert into config (key, value)
-values ('scp_download_sum_count', 0);
-insert into config (key, value)
-values ('scp_cloud_download_sum_count', 0);
-insert into config (key, value)
-values ('local_iterm_sum_count', 0);
-insert into config (key, value)
-values ('import_rdp_sum_count', 0);
-insert into config (key, value)
-values ('file_transfer_sum_count', 0);
-insert into config (key, value)
-values ('copy_id_sum_count', 0);
-insert into config (key, value)
-values ('edit_file_sum_count', 0);
-insert into config (key, value)
-values ('delete_file_sum_count', 0);
+values (?, ?);
+
+-- name: UseLightTheme :exec
+update config
+set value = 'light'
+where key = 'theme';
+
+-- name: UseGrayTheme :exec
+update config
+set value = 'gray'
+where key = 'theme';
+
+-- name: UseDarkTheme :exec
+update config
+set value = 'dark'
+where key = 'theme';
+
+-- name: GetTheme :one
+select value
+from config
+where key = 'theme';
 
 -- name: StatsIncConnectSSH :exec
 update config

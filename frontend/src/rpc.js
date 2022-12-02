@@ -7,6 +7,7 @@ export const ToolService = window.go.service.ToolService
 export const StatsService = window.go.service.StatsService
 export const TaskService = window.go.service.TaskService
 export const AutomationService = window.go.service.AutomationService
+export const SettingService = window.go.service.SettingService
 
 export function then(fn) {
     return data => {

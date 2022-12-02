@@ -1,5 +1,9 @@
 @import 'antd/dist/antd.css';
 
+.gray-theme {
+    filter: grayscale(100%) !important;
+}
+
 body {
     margin: 0;
     padding: 0;

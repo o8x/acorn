@@ -1,8 +1,11 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	_ "embed"
+	"fmt"
+	"github.com/o8x/acorn/backend/logger"
 	"os"
 	"path/filepath"
 
@@ -34,6 +37,35 @@ func Init(filename string) error {
 
 	query = queries.New(db)
 	ins = db
+
+	tabel := map[string]any{
+		"connect_sum_count":            0,
+		"connect_rdp_sum_count":        0,
+		"ping_sum_count":               0,
+		"top_sum_count":                0,
+		"scp_upload_sum_count":         0,
+		"scp_download_sum_count":       0,
+		"scp_cloud_download_sum_count": 0,
+		"local_iterm_sum_count":        0,
+		"import_rdp_sum_count":         0,
+		"file_transfer_sum_count":      0,
+		"copy_id_sum_count":            0,
+		"edit_file_sum_count":          0,
+		"delete_file_sum_count":        0,
+		"scp_upload_base64_sum_count":  0,
+		"theme":                        "light",
+	}
+
+	for k, v := range tabel {
+		err := query.CreateConfigKey(context.Background(), queries.CreateConfigKeyParams{
+			Key:   k,
+			Value: fmt.Sprintf("%v", v),
+		})
+
+		if err != nil {
+			logger.Error(err)
+		}
+	}
 
 	_, err = db.Exec(ddl)
 	return err

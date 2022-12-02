@@ -43,6 +43,7 @@ func main() {
 			server.TaskService,
 			server.ToolService,
 			server.AutomationService,
+			server.SettingService,
 		},
 		Mac: &mac.Options{
 			TitleBar: &mac.TitleBar{

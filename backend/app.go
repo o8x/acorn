@@ -17,6 +17,7 @@ import (
 
 	"github.com/o8x/acorn/backend/database"
 	"github.com/o8x/acorn/backend/database/queries"
+	"github.com/o8x/acorn/backend/model"
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/service"
 	"github.com/o8x/acorn/backend/service/tasker"
@@ -41,6 +42,7 @@ type App struct {
 	ToolService           *service.ToolService
 	TagService            *service.TagService
 	AutomationService     *service.AutomationService
+	SettingService        *service.SettingService
 }
 
 func New() *App {
@@ -54,6 +56,7 @@ func New() *App {
 		AutomationService:     &service.AutomationService{Service: baseService},
 		ToolService:           &service.ToolService{Service: baseService},
 		TagService:            &service.TagService{Service: baseService},
+		SettingService:        &service.SettingService{Service: baseService},
 	}
 }
 
@@ -90,6 +93,9 @@ func (c *App) initDatabase() {
 		})
 		runtime.Quit(c.Context)
 	}
+
+	model.SetContext(c.Context)
+	model.SetQueries(database.GetQueries())
 }
 
 func (c *App) initBaseService() {
@@ -117,8 +123,35 @@ func (c *App) registerMenus(current *menu.Menu) {
 
 	fileMenu.AddSeparator()
 
-	runtime.MenuSetApplicationMenu(c.Context, current)
-	runtime.MenuUpdateApplicationMenu(c.Context)
+	theme := current.AddSubmenu("Theme")
+	item := theme.AddText("", nil, nil)
+
+	updateMenu := func() {
+		item.Label = fmt.Sprintf("Theme: %s", model.GetTheme())
+		item.Disabled = true
+
+		runtime.EventsEmit(c.Context, "update-theme")
+		runtime.MenuSetApplicationMenu(c.Context, current)
+		runtime.MenuUpdateApplicationMenu(c.Context)
+	}
+
+	theme.AddSeparator()
+	theme.AddText("Switch Light", nil, func(data *menu.CallbackData) {
+		c.SettingService.UseLightTheme()
+		updateMenu()
+	})
+
+	theme.AddText("Switch Dark", nil, func(data *menu.CallbackData) {
+		c.SettingService.UseDarkTheme()
+		updateMenu()
+	})
+
+	theme.AddText("Switch Gary", nil, func(data *menu.CallbackData) {
+		c.SettingService.UseGrayTheme()
+		updateMenu()
+	})
+
+	updateMenu()
 }
 
 func (c *App) registerRouter(ctx context.Context) {

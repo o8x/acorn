@@ -36,6 +36,7 @@ import Clock from "./Pages/Clock"
 import Home from "./Pages/Home"
 import ProxyIPTester from "./Pages/ProxyIPTester"
 import Automation from "./Pages/Automation"
+import {SettingService, then} from "./rpc"
 
 const {Content, Sider} = Layout
 
@@ -75,10 +76,13 @@ export default function (props) {
     const [collapsed, setCollapsed] = useState(true)
     const [selected, setSelected] = useState("/")
     const [theme, setTheme] = useState("light")
+    const [gray, setGray] = useState(false)
 
     useEffect(() => {
         setSelected(location.hash.replace("#", ""))
+        resetTheme()
 
+        window.runtime.EventsOn("update-theme", resetTheme)
         window.runtime.EventsOn("message", data => {
             const config = {
                 message: data.title,
@@ -103,12 +107,25 @@ export default function (props) {
         })
     }, [])
 
+    const resetTheme = () => {
+        SettingService.GetTheme().then(then(data => {
+            if (data.body === "gray") {
+                setTheme("dark")
+                setGray(true)
+            } else {
+                setTheme(data.body)
+                setGray(false)
+            }
+        }))
+    }
+
     const onSelect = ({key}) => {
         navigate(key)
         setSelected(key)
     }
 
     return (<Layout
+        className={gray ? "gray-theme" : ""}
         style={{
             minHeight: "100vh",
         }}
