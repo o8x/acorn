@@ -3,7 +3,7 @@ package service
 import (
 	"fmt"
 
-	"github.com/o8x/acorn/backend/model"
+	"github.com/o8x/acorn/backend/database/queries"
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/runner"
 	"github.com/o8x/acorn/backend/runner/logger"
@@ -40,8 +40,8 @@ func (t *AutomationService) GetAutomationLogs(id int64) *response.Response {
 	return response.OK(logs)
 }
 
-func (t *AutomationService) UpdateAutomation(id int64, playbook model.Automation) *response.Response {
-	err := t.DB.UpdateAutomation(t.Context, model.UpdateAutomationParams{
+func (t *AutomationService) UpdateAutomation(id int64, playbook queries.Automation) *response.Response {
+	err := t.DB.UpdateAutomation(t.Context, queries.UpdateAutomationParams{
 		Playbook: playbook.Playbook,
 		Name:     playbook.Name,
 		Desc:     playbook.Desc,
@@ -96,7 +96,7 @@ func (t *AutomationService) RunAutomation(id, sessionID int64) *response.Respons
 		}
 
 		r.AsyncRunFunc(logger.NewFunc(func(s string) error {
-			return t.DB.AppendAutomationLog(t.Context, model.AppendAutomationLogParams{
+			return t.DB.AppendAutomationLog(t.Context, queries.AppendAutomationLogParams{
 				Contents: s,
 				ID:       logID,
 			})

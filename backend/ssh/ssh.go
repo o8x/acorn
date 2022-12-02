@@ -15,7 +15,7 @@ import (
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 
-	"github.com/o8x/acorn/backend/model"
+	"github.com/o8x/acorn/backend/database/queries"
 )
 
 var (
@@ -24,8 +24,8 @@ var (
 )
 
 type SSH struct {
-	Config      model.Connect  `json:"session"`
-	ProxyConfig *model.Connect `json:"proxy_server"`
+	Config      queries.Connect  `json:"session"`
+	ProxyConfig *queries.Connect `json:"proxy_server"`
 	client      *ssh.Client
 	session     *ssh.Session
 }

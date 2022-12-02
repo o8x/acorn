@@ -16,7 +16,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"github.com/o8x/acorn/backend/database"
-	"github.com/o8x/acorn/backend/model"
+	"github.com/o8x/acorn/backend/database/queries"
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/service"
 	"github.com/o8x/acorn/backend/service/tasker"
@@ -181,7 +181,7 @@ func (c *App) registerRouter(ctx context.Context) {
 		}
 
 		conn := ssh.Start(ssh.SSH{
-			Config: model.Connect{
+			Config: queries.Connect{
 				Host:     c.Host,
 				Username: c.UserName,
 				Port:     int64(c.Port),
@@ -226,7 +226,7 @@ func (c *App) registerRouter(ctx context.Context) {
 		}
 
 		conn := ssh.Start(ssh.SSH{
-			Config: model.Connect{
+			Config: queries.Connect{
 				Host:     c.Host,
 				Username: c.UserName,
 				Port:     int64(c.Port),
@@ -266,7 +266,7 @@ func (c *App) registerRouter(ctx context.Context) {
 		}
 
 		conn := ssh.Start(ssh.SSH{
-			Config: model.Connect{
+			Config: queries.Connect{
 				Host:     c.Host,
 				Username: c.UserName,
 				Port:     int64(c.Port),
@@ -312,7 +312,7 @@ func (c *App) registerRouter(ctx context.Context) {
 		}
 
 		conn := ssh.Start(ssh.SSH{
-			Config: model.Connect{
+			Config: queries.Connect{
 				Host:     c.Host,
 				Username: c.UserName,
 				Port:     int64(c.Port),

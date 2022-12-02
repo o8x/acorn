@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/o8x/acorn/backend/model"
+	"github.com/o8x/acorn/backend/database/queries"
 )
 
 const (
@@ -24,12 +24,12 @@ type Task struct {
 
 type Tasker struct {
 	Context context.Context
-	DB      *model.Queries
+	DB      *queries.Queries
 }
 
-func (t Tasker) RunOnBackground(params Task, fn func(model.Task) error) (model.Task, error) {
+func (t Tasker) RunOnBackground(params Task, fn func(queries.Task) error) (queries.Task, error) {
 	commands, _ := json.Marshal(params.Command)
-	task, err := t.DB.CreateTask(t.Context, model.CreateTaskParams{
+	task, err := t.DB.CreateTask(t.Context, queries.CreateTaskParams{
 		Title:       params.Title,
 		Command:     string(commands),
 		Description: params.Description,
@@ -40,7 +40,7 @@ func (t Tasker) RunOnBackground(params Task, fn func(model.Task) error) (model.T
 
 	go func() {
 		if err := fn(task); err != nil {
-			_ = t.DB.TaskError(t.Context, model.TaskErrorParams{
+			_ = t.DB.TaskError(t.Context, queries.TaskErrorParams{
 				ID:     task.ID,
 				Result: err.Error(),
 			})

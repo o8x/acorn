@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/o8x/acorn/backend/model"
+	"github.com/o8x/acorn/backend/database/queries"
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/service/tasker"
 	"github.com/o8x/acorn/backend/ssh"
@@ -31,7 +31,7 @@ func (t *FileSystemService) ListDir(id int64, dir string) *response.Response {
 		return response.Error(err)
 	}
 
-	var proxy *model.Connect
+	var proxy *queries.Connect
 	if session.ProxyServerID != 0 {
 		p, err := t.DB.FindSession(t.Context, session.ProxyServerID)
 		if err != nil {
@@ -75,7 +75,7 @@ func (t *FileSystemService) DownloadFiles(id int64, src string) *response.Respon
 		return response.Error(err)
 	}
 
-	var proxy *model.Connect
+	var proxy *queries.Connect
 	if session.ProxyServerID != 0 {
 		p, err := t.DB.FindSession(t.Context, session.ProxyServerID)
 		if err != nil {
@@ -98,7 +98,7 @@ func (t *FileSystemService) DownloadFiles(id int64, src string) *response.Respon
 			"src":        src,
 			"dst":        dst,
 		},
-	}, func(task model.Task) error {
+	}, func(task queries.Task) error {
 		defer t.Message.Success("文件下载成功", fmt.Sprintf("%s -> %s", src, dst))
 
 		conn := ssh.Start(ssh.SSH{
@@ -131,7 +131,7 @@ func (t *FileSystemService) UploadFiles(id int64, dst string) *response.Response
 		return response.Error(err)
 	}
 
-	var proxy *model.Connect
+	var proxy *queries.Connect
 	if session.ProxyServerID != 0 {
 		p, err := t.DB.FindSession(t.Context, session.ProxyServerID)
 		if err != nil {
@@ -153,7 +153,7 @@ func (t *FileSystemService) UploadFiles(id int64, dst string) *response.Response
 			"src":        files,
 			"dst":        dst,
 		},
-	}, func(task model.Task) error {
+	}, func(task queries.Task) error {
 		defer t.Message.Success("文件上传成功", fmt.Sprintf("%s -> %s", files, dst))
 
 		conn := ssh.Start(ssh.SSH{

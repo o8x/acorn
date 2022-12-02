@@ -5,7 +5,7 @@ import (
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"github.com/o8x/acorn/backend/model"
+	"github.com/o8x/acorn/backend/database/queries"
 	"github.com/o8x/acorn/backend/service/tasker"
 )
 
@@ -46,7 +46,7 @@ func (m Message) Info(title, message string) {
 }
 
 type Service struct {
-	DB      *model.Queries
+	DB      *queries.Queries
 	Context context.Context
 	Tasker  *tasker.Tasker
 	Message *Message

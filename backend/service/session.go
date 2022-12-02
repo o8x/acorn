@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/o8x/acorn/backend/model"
+	"github.com/o8x/acorn/backend/database/queries"
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/scripts"
 	"github.com/o8x/acorn/backend/ssh"
@@ -14,7 +14,7 @@ import (
 )
 
 type Sess struct {
-	model.Connect
+	queries.Connect
 	Workdir    string        `json:"-"`
 	Tags       []interface{} `json:"tags"`
 	TagsString string        `json:"tags_string"`
@@ -42,7 +42,7 @@ func (s *SessionService) QuerySessions(keyword string) *response.Response {
 		return s.GetSessions()
 	}
 
-	sessions, err := s.DB.QuerySessions(s.Context, model.QuerySessionsParams{
+	sessions, err := s.DB.QuerySessions(s.Context, queries.QuerySessionsParams{
 		Host:     fmt.Sprintf("%%%s%%", keyword),
 		Username: fmt.Sprintf("%%%s%%", keyword),
 		Label:    fmt.Sprintf("%%%s%%", keyword),
@@ -67,7 +67,7 @@ func (s *SessionService) DeleteConnect(id int64) *response.Response {
 }
 
 type EditSessionParams struct {
-	model.UpdateSessionParams
+	queries.UpdateSessionParams
 	Tags []any `json:"tags"`
 }
 
@@ -98,7 +98,7 @@ func (s *SessionService) UpdateSession(it EditSessionParams) *response.Response 
 
 	if it.Type == "linux" {
 		conn := ssh.Start(ssh.SSH{
-			Config: model.Connect{
+			Config: queries.Connect{
 				Host:     it.Host,
 				Username: it.Username,
 				Port:     it.Port,
@@ -122,7 +122,7 @@ func (s *SessionService) UpdateSession(it EditSessionParams) *response.Response 
 		}
 	}
 
-	err := s.DB.UpdateSession(s.Context, model.UpdateSessionParams{
+	err := s.DB.UpdateSession(s.Context, queries.UpdateSessionParams{
 		Type:          it.Type,
 		Label:         it.Label,
 		Username:      it.Username,
@@ -143,7 +143,7 @@ func (s *SessionService) UpdateSession(it EditSessionParams) *response.Response 
 	return response.NoContent()
 }
 
-func (s *SessionService) UpdateSessionLabel(it model.UpdateSessionLabelParams) *response.Response {
+func (s *SessionService) UpdateSessionLabel(it queries.UpdateSessionLabelParams) *response.Response {
 	if err := s.DB.UpdateSessionLabel(s.Context, it); err != nil {
 		return response.Error(err)
 	}
@@ -204,7 +204,7 @@ func (s *SessionService) TopConnect(id int64) *response.Response {
 	return response.NoContent()
 }
 
-func (s *SessionService) makeRDPFileForSession(sess model.Connect) (string, error) {
+func (s *SessionService) makeRDPFileForSession(sess queries.Connect) (string, error) {
 	f, err := os.CreateTemp("", "*.rdp")
 	if err != nil {
 		return "", err
@@ -226,7 +226,7 @@ func (s *SessionService) makeRDPFileForSession(sess model.Connect) (string, erro
 	return f.Name(), nil
 }
 
-func (s *SessionService) OpenRDPSession(sess model.Connect) *response.Response {
+func (s *SessionService) OpenRDPSession(sess queries.Connect) *response.Response {
 	if err := s.DB.StatsIncConnectRDP(s.Context); err != nil {
 		return response.Error(err)
 	}
@@ -257,7 +257,7 @@ func (s *SessionService) OpenRDPSession(sess model.Connect) *response.Response {
 	return response.NoContent()
 }
 
-func (s *SessionService) makeSSHArgs(sess model.Connect) (*stringbuilder.Builder, error) {
+func (s *SessionService) makeSSHArgs(sess queries.Connect) (*stringbuilder.Builder, error) {
 	sb := &stringbuilder.Builder{}
 	sb.WriteNEString(strings.TrimSpace(sess.Params))
 
@@ -327,7 +327,7 @@ func (s *SessionService) ImportRdpFile() {
 
 }
 
-func (s *SessionService) CreateSession(connect model.CreateSessionParams) *response.Response {
+func (s *SessionService) CreateSession(connect queries.CreateSessionParams) *response.Response {
 	if err := s.DB.CreateSession(s.Context, connect); err != nil {
 		return response.Error(err)
 	}

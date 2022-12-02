@@ -8,22 +8,22 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"github.com/o8x/acorn/backend/model"
+	"github.com/o8x/acorn/backend/database/queries"
 )
 
 var (
 	//go:embed ddl.sql
-	ddl     string
-	ins     *sql.DB
-	queries *model.Queries
+	ddl   string
+	ins   *sql.DB
+	query *queries.Queries
 )
 
 func Get() *sql.DB {
 	return ins
 }
 
-func GetQueries() *model.Queries {
-	return queries
+func GetQueries() *queries.Queries {
+	return query
 }
 
 func Init(filename string) error {
@@ -32,7 +32,7 @@ func Init(filename string) error {
 		return err
 	}
 
-	queries = model.New(db)
+	query = queries.New(db)
 	ins = db
 
 	_, err = db.Exec(ddl)
