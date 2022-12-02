@@ -25,15 +25,7 @@ import (
 )
 
 var (
-	base                  = &service.Service{}
-	AppleScriptService    = &service.AppleScriptService{Service: base}
-	ConnectSessionService = &service.SessionService{Service: base}
-	FileSystemService     = &service.FileSystemService{Service: base}
-	StatsService          = &service.StatsService{Service: base}
-	TaskService           = &service.TaskService{Service: base}
-	ToolService           = &service.ToolService{Service: base}
-	TagService            = &service.TagService{Service: base}
-	AutomationService     = &service.AutomationService{Service: base}
+	baseService = &service.Service{}
 )
 
 type App struct {
@@ -54,14 +46,14 @@ type App struct {
 func New() *App {
 	return &App{
 		Connect:               NewConnect(),
-		AppleScriptService:    AppleScriptService,
-		ConnectSessionService: ConnectSessionService,
-		FileSystemService:     FileSystemService,
-		StatsService:          StatsService,
-		TaskService:           TaskService,
-		AutomationService:     AutomationService,
-		ToolService:           ToolService,
-		TagService:            TagService,
+		AppleScriptService:    &service.AppleScriptService{Service: baseService},
+		ConnectSessionService: &service.SessionService{Service: baseService},
+		FileSystemService:     &service.FileSystemService{Service: baseService},
+		StatsService:          &service.StatsService{Service: baseService},
+		TaskService:           &service.TaskService{Service: baseService},
+		AutomationService:     &service.AutomationService{Service: baseService},
+		ToolService:           &service.ToolService{Service: baseService},
+		TagService:            &service.TagService{Service: baseService},
 	}
 }
 
@@ -101,10 +93,10 @@ func (c *App) initDatabase() {
 }
 
 func (c *App) initBaseService() {
-	base.DB = database.GetQueries()
-	base.Context = c.Context
-	base.Message = &service.Message{Context: c.Context}
-	base.Tasker = &tasker.Tasker{
+	baseService.DB = database.GetQueries()
+	baseService.Context = c.Context
+	baseService.Message = &service.Message{Context: c.Context}
+	baseService.Tasker = &tasker.Tasker{
 		Context: c.Context,
 		DB:      database.GetQueries(),
 	}
