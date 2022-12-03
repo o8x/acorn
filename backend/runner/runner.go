@@ -43,15 +43,27 @@ func ParsePlaybook(p string) (*Playbook, error) {
 }
 
 func (p *Runner) AsyncRunFunc(log *logger.Logger, fn1 func(error)) {
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Write("ASYNC PLAY CRASHED")
+				log.Write("ERROR: %v", err)
+				log.Write("STACK %v", string(debug.Stack()))
+			}
+		}()
+
+		p.RunFunc(log, fn1)
+	}()
+}
+
+func (p *Runner) RunFunc(log *logger.Logger, fn1 func(error)) {
 	pb, err := ParsePlaybook(string(p.Playbook))
 	if err != nil {
 		fn1(err)
 		return
 	}
 
-	go func() {
-		fn1(p.run(*pb, log))
-	}()
+	fn1(p.run(*pb, log))
 }
 
 func (p *Runner) run(pb Playbook, log *logger.Logger) error {

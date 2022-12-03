@@ -7,6 +7,7 @@ import (
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/runner"
 	"github.com/o8x/acorn/backend/runner/logger"
+	"github.com/o8x/acorn/backend/service/tasker"
 	"github.com/o8x/acorn/backend/ssh"
 )
 
@@ -41,10 +42,15 @@ func (t *AutomationService) GetAutomationLogs(id int64) *response.Response {
 }
 
 func (t *AutomationService) UpdateAutomation(id int64, playbook queries.Automation) *response.Response {
-	err := t.DB.UpdateAutomation(t.Context, queries.UpdateAutomationParams{
+	pb, err := runner.ParsePlaybook(playbook.Playbook)
+	if err != nil {
+		return response.Error(err)
+	}
+
+	err = t.DB.UpdateAutomation(t.Context, queries.UpdateAutomationParams{
 		Playbook: playbook.Playbook,
-		Name:     playbook.Name,
-		Desc:     playbook.Desc,
+		Name:     pb.Name,
+		Desc:     pb.Desc,
 		ID:       id,
 	})
 	if err != nil {
@@ -95,18 +101,31 @@ func (t *AutomationService) RunAutomation(id, sessionID int64) *response.Respons
 			SSH:      ssh.Start(ssh.SSH{Config: sess}),
 		}
 
-		r.AsyncRunFunc(logger.NewFunc(func(s string) error {
-			return t.DB.AppendAutomationLog(t.Context, queries.AppendAutomationLogParams{
-				Contents: s,
-				ID:       logID,
+		_, err := t.Tasker.RunOnBackground(tasker.Task{
+			Title:       fmt.Sprintf("运行自动化 [%s]", data.Name),
+			Command:     data.Playbook,
+			Description: data.Desc,
+		}, func(task queries.Task) (e error) {
+			r.RunFunc(logger.NewFunc(func(s string) error {
+				return t.DB.AppendAutomationLog(t.Context, queries.AppendAutomationLogParams{
+					Contents: s,
+					ID:       logID,
+				})
+			}), func(err error) {
+				if err != nil {
+					t.Message.Error(fmt.Sprintf("自动化 [%s] 执行失败", data.Name), err.Error())
+				} else {
+					t.Message.Success(fmt.Sprintf("自动化 [%s] 执行成功", data.Name), "")
+				}
+
+				e = err
 			})
-		}), func(err error) {
-			if err != nil {
-				t.Message.Error(fmt.Sprintf("自动化 [%s] 执行失败", data.Name), err.Error())
-			} else {
-				t.Message.Success(fmt.Sprintf("自动化 [%s] 执行成功", data.Name), "")
-			}
+			return
 		})
+
+		if err != nil {
+			t.Message.Error(fmt.Sprintf("自动化 [%s] 生成失败", data.Name), err.Error())
+		}
 	}()
 
 	return response.NoContent()
