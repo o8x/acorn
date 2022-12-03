@@ -117,7 +117,7 @@ export default function (props) {
                         <Meta
                             avatar={<Avatar src={getLogoSrc(it.type)}/>}
                             title={it.label === "" ? it.host : it.label}
-                            description={`${it.username.substring(0, 5)}@${it.host}`}
+                            description={`${it.username.substring(0, 5)}@${it.host.length > 15 ? it.host.substring(0, 10) : it.host}`}
                         />
                     </a>
                 </Card.Grid>
