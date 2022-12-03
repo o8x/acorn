@@ -96,8 +96,10 @@ func (p *Runner) run(pb Playbook, log *logger.Logger) error {
 			if args, ok := task[k]; ok {
 				v, _ = json.Marshal(args)
 				switch k {
-				case "builtin.shell":
-					plugin = &shell.Plugin{}
+				case "builtin.shell", "builtin.local.remote":
+					plugin = &shell.RemoteShell{}
+				case "builtin.shell.local":
+					plugin = &shell.LocalShell{}
 				case "builtin.file.remote_delete":
 					plugin = &filesystem.RemoteDeletePlugin{}
 				case "builtin.file.upload":

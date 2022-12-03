@@ -101,6 +101,10 @@ func (conn *SSH) Connect() error {
 }
 
 func (conn *SSH) GetClient() *ssh.Client {
+	if err := conn.Connect(); err != nil {
+		return nil
+	}
+
 	return conn.client
 }
 
@@ -205,15 +209,13 @@ func (conn *SSH) ExecShellCode(code string) (*bytes.Buffer, error) {
 		return nil, nil
 	}
 
-	buf := &bytes.Buffer{}
-	conn.session.Stdout = buf
-
-	if err := conn.session.Run(code); err != nil {
-		return nil, err
+	output, err := conn.session.CombinedOutput(code)
+	if err != nil {
+		return bytes.NewBuffer(output), err
 	}
 
 	_ = conn.session.Close()
-	return buf, nil
+	return bytes.NewBuffer(output), nil
 }
 
 func (conn *SSH) CloseSession() error {

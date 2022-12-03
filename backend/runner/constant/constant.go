@@ -7,7 +7,9 @@ type FileTransferParams struct {
 }
 
 type ShellParams struct {
-	Command string `json:"command"`
+	Environments map[string]string `json:"environments"`
+	WorkDir      string            `json:"workdir"`
+	Commands     []string          `json:"commands"`
 }
 
 type RemoteDeleteParams struct {
