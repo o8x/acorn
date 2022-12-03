@@ -1,6 +1,7 @@
 package tasker
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 
@@ -28,10 +29,20 @@ type Tasker struct {
 }
 
 func (t Tasker) RunOnBackground(params Task, fn func(queries.Task) error) (queries.Task, error) {
-	commands, _ := json.Marshal(params.Command)
+	buf := bytes.NewBuffer(nil)
+	if s, ok := params.Command.(string); ok {
+		buf.WriteString(s)
+	} else {
+		commands, _ := json.Marshal(params.Command)
+		if err := json.Indent(buf, commands, "", "    "); err != nil {
+			buf.Reset()
+			buf.Write(commands)
+		}
+	}
+
 	task, err := t.DB.CreateTask(t.Context, queries.CreateTaskParams{
 		Title:       params.Title,
-		Command:     string(commands),
+		Command:     buf.String(),
 		Description: params.Description,
 	})
 	if err != nil {

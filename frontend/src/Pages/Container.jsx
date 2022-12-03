@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react"
-import {Button, Drawer, List, message, PageHeader, Space, Switch, Tag, Tooltip, Typography} from "antd"
+import {Badge, Button, Drawer, List, message, PageHeader, Space, Switch, Tag, Tooltip, Typography} from "antd"
 import {
     ArrowLeftOutlined,
     CheckCircleOutlined,
@@ -25,18 +25,23 @@ export default function (props) {
     let [containerHeight, setContainerHeight] = useState(window.innerHeight - headerHeight)
     let [visible, setVisible] = useState(false)
     let [detailDrawer, setDetailDrawer] = useState(false)
-    let [displayAll, setDisplayAll] = useState(false)
+    let [onlyRunning, setOnlyRunning] = useState(true)
     let [taskDetail, setTaskDetail] = useState({})
     let [tasks, setTasks] = useState([])
+    let [badgeCount, setBadgeCount] = useState(0)
 
-    const reloadTasks = displayAll => {
-        let list = TaskService.ListNormal
-        if (displayAll) {
-            list = TaskService.ListAll
+    const reloadTasks = onlyRunning => {
+        let list = TaskService.ListAll
+        if (onlyRunning) {
+            list = TaskService.ListNormal
         }
 
         list().then(res => {
             if (res.status_code === 200) {
+                let sum = 0
+                res.body.map(it => it.status === "running" ? sum++ : 0)
+                setBadgeCount(sum)
+
                 setTasks(res.body)
             }
         })
@@ -45,7 +50,11 @@ export default function (props) {
     useEffect(() => {
         reloadTasks()
         window.onresize = () => setContainerHeight(window.innerHeight - headerHeight)
-        return () => window.onresize = null
+        let interval = setInterval(() => reloadTasks(onlyRunning), 1000)
+        return () => {
+            window.onresize = null
+            clearInterval(interval)
+        }
     }, [])
 
     const onClose = function () {
@@ -87,8 +96,10 @@ export default function (props) {
 
     return <>
         <div style={{"--wails-draggable": "drag"}} onDoubleClick={window.runtime.WindowToggleMaximise}>
-            <Button className="open-task-btn" type="dashed" shape="text"
-                    onClick={() => setVisible(true)} icon={<OrderedListOutlined/>}/>
+            <Badge className="open-task-btn" size="small" count={badgeCount}>
+                <Button className="open-task-btn" type="dashed" shape="text"
+                        onClick={() => setVisible(true)} icon={<OrderedListOutlined/>}/>
+            </Badge>
             {props.title === "" && props.subTitle === "" ? "" : <PageHeader
                 title={
                     <>{location.hash.split("/").length > 2 ? backBtn : null}{props.title}</>
@@ -114,14 +125,14 @@ export default function (props) {
             onClose={onClose}
             closable={true}
             extra={<Space>
-                <Tooltip title="显示历史作业">
+                <Tooltip title="只显示运行中的作业">
                     <Switch onChange={checked => {
-                        setDisplayAll(checked)
+                        setOnlyRunning(checked)
                         reloadTasks(checked)
                     }}/>
                 </Tooltip>
                 <Tooltip title="刷新作业列表">
-                    <Button icon={<ReloadOutlined/>} shape="circle" onClick={() => reloadTasks(displayAll)}/>
+                    <Button icon={<ReloadOutlined/>} shape="circle" onClick={() => reloadTasks(onlyRunning)}/>
                 </Tooltip>
             </Space>}>
 
@@ -137,23 +148,25 @@ export default function (props) {
                         <List.Item key={item}>
                             <List.Item.Meta
                                 title={<>{item.title} {statusIcon[item.status]}</>}
-                                description={item.description}
+                                description={<Space>
+                                    <span className="task-title">{item.description}</span>
+                                    <Space>
+                                        |
+                                        <Tooltip title="查看详情">
+                                            <Button icon={<ZoomInOutlined/>} type="link"
+                                                    onClick={() => {
+                                                        setDetailDrawer(true)
+                                                        setTaskDetail(item)
+                                                    }}/>
+                                        </Tooltip>
+
+                                        {item.status === "running" ? <Tooltip title="取消任务">
+                                            <Button danger icon={<StopOutlined/>} type="link"
+                                                    onClick={() => cancelTask(item)}/>
+                                        </Tooltip> : ""}
+                                    </Space>
+                                </Space>}
                             />
-                            {item.status === "running" ? <Tooltip title="取消任务">
-                                <Button danger icon={<StopOutlined/>} type="link"
-                                        onClick={() => cancelTask(item)}/>
-                            </Tooltip> : ""}
-                            {item.status === "error" || item.status === "timeout" ? <Tooltip title="取消任务">
-                                <Button danger icon={<StopOutlined/>} type="link"
-                                        onClick={() => cancelTask(item)}/>
-                            </Tooltip> : ""}
-                            <Tooltip title="任务详情">
-                                <Button icon={<ZoomInOutlined/>} type="link"
-                                        onClick={() => {
-                                            setDetailDrawer(true)
-                                            setTaskDetail(item)
-                                        }}/>
-                            </Tooltip>
                         </List.Item>
                     </>}
                 />
@@ -172,7 +185,7 @@ export default function (props) {
                 <Paragraph>创建时间：{taskDetail.create_time}</Paragraph>
                 <Title level={5}>命令：</Title>
                 <Paragraph>
-                    <Editor value={taskDetail.command} autowrap height="150px"/>
+                    <Editor value={taskDetail.command} lang="javascript" autowrap height="150px"/>
                 </Paragraph>
                 <Title level={5}>运行结果：<Switch size="small" defaultChecked/></Title>
                 <Paragraph>

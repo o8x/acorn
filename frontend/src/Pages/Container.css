@@ -1,6 +1,15 @@
 .open-task-btn {
     position: fixed;
-    top: 16px;
-    right: 16px;
+    top: 20px;
+    right: 20px;
     z-index: 1000;
+}
+
+.task-title {
+    overflow: hidden;
+    width: 300px;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+    white-space: nowrap;
+    display: inline-block;
 }
