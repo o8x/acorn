@@ -136,6 +136,11 @@ func (c *App) registerMenus(current *menu.Menu) {
 	}
 
 	theme.AddSeparator()
+	theme.AddText("Reset Default", nil, func(data *menu.CallbackData) {
+		c.SettingService.UseDefaultTheme()
+		updateMenu()
+	})
+
 	theme.AddText("Switch Light", nil, func(data *menu.CallbackData) {
 		c.SettingService.UseLightTheme()
 		updateMenu()

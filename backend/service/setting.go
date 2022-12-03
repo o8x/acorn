@@ -18,6 +18,15 @@ func (t *SettingService) GetTheme() *response.Response {
 	return response.OK(theme)
 }
 
+func (t *SettingService) UseDefaultTheme() *response.Response {
+	if err := t.DB.UseLightTheme(t.Context); err != nil {
+		return response.Error(err)
+	}
+
+	runtime.WindowSetSystemDefaultTheme(t.Context)
+	return response.NoContent()
+}
+
 func (t *SettingService) UseLightTheme() *response.Response {
 	if err := t.DB.UseLightTheme(t.Context); err != nil {
 		return response.Error(err)
