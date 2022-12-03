@@ -151,6 +151,35 @@ func (c *App) registerMenus(current *menu.Menu) {
 		updateMenu()
 	})
 
+	resize := current.AddSubmenu("Window")
+	resize.AddText("Reload", nil, func(data *menu.CallbackData) {
+		runtime.WindowReload(c.Context)
+	})
+
+	resize.AddText("Reload UI", nil, func(data *menu.CallbackData) {
+		runtime.WindowReloadApp(c.Context)
+	})
+
+	resize.AddText("As Default Size", nil, func(data *menu.CallbackData) {
+		runtime.WindowSetSize(c.Context, 1024, 650)
+	})
+
+	resize.AddText("Toggle Maximise", nil, func(data *menu.CallbackData) {
+		runtime.WindowToggleMaximise(c.Context)
+	})
+
+	resize.AddText("As Maximise", nil, func(data *menu.CallbackData) {
+		runtime.WindowMaximise(c.Context)
+	})
+
+	resize.AddText("As Minimise", nil, func(data *menu.CallbackData) {
+		runtime.WindowMinimise(c.Context)
+	})
+
+	resize.AddText("Move To Center", nil, func(data *menu.CallbackData) {
+		runtime.WindowCenter(c.Context)
+	})
+
 	updateMenu()
 }
 
