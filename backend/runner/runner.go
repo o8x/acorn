@@ -14,14 +14,6 @@ import (
 	"github.com/o8x/acorn/backend/ssh"
 )
 
-var table = []string{
-	"builtin.shell",
-	"builtin.file.remote_delete",
-	"builtin.file.upload",
-	"builtin.remote_copy",
-	"builtin.notification",
-}
-
 type Playbook struct {
 	Name  string                   `yaml:"name"`
 	Desc  string                   `yaml:"desc"`
@@ -89,38 +81,41 @@ func (p *Runner) run(pb Playbook, log *logger.Logger) error {
 		var (
 			name   = task["name"]
 			plugin Plugin
-			v      []byte
+			v      any
 		)
 
-		for _, k := range table {
-			if args, ok := task[k]; ok {
-				v, _ = json.Marshal(args)
-				switch k {
-				case "builtin.shell", "builtin.local.remote":
-					plugin = &shell.RemoteShell{}
-				case "builtin.shell.local":
-					plugin = &shell.LocalShell{}
-				case "builtin.file.remote_delete":
-					plugin = &filesystem.RemoteDeletePlugin{}
-				case "builtin.file.upload":
-					plugin = &filesystem.UploadPlugin{}
-				case "builtin.file.download":
-					plugin = &filesystem.DownloadPlugin{}
-				case "builtin.remote_copy":
-				case "builtin.notification":
-				default:
-					return fmt.Errorf("plugin not found")
-				}
-				break
-			}
+		if v1, ok := task["builtin.remote.shell"]; ok {
+			plugin = &shell.RemoteShell{}
+			v = v1
+		}
+
+		if v1, ok := task["builtin.local.shell"]; ok {
+			plugin = &shell.LocalShell{}
+			v = v1
+		}
+
+		if v1, ok := task["builtin.remote.fs.delete"]; ok {
+			plugin = &filesystem.RemoteDeletePlugin{}
+			v = v1
+		}
+
+		if v1, ok := task["builtin.local.fs.upload"]; ok {
+			plugin = &filesystem.UploadPlugin{}
+			v = v1
+		}
+
+		if v1, ok := task["builtin.remote.fs.download"]; ok {
+			plugin = &filesystem.DownloadPlugin{}
+			v = v1
+		}
+
+		if plugin == nil {
+			return fmt.Errorf("plugin not found")
 		}
 
 		err := func(pl Plugin) error {
-			if plugin == nil {
-				return nil
-			}
-
-			if err := pl.ParseParams(v); err != nil {
+			marshal, _ := json.Marshal(v)
+			if err := pl.ParseParams(marshal); err != nil {
 				return err
 			}
 
