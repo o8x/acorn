@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/o8x/acorn/backend/database/queries"
+	"github.com/o8x/acorn/backend/model"
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/runner"
 	"github.com/o8x/acorn/backend/runner/logger"
@@ -98,7 +99,10 @@ func (t *AutomationService) RunAutomation(id, sessionID int64) *response.Respons
 		r := runner.Runner{
 			Context:  t.Context,
 			Playbook: []byte(data.Playbook),
-			SSH:      ssh.Start(ssh.SSH{Config: sess}),
+			SSH: ssh.Start(ssh.SSH{
+				Config:      sess,
+				ProxyConfig: model.FindSessionDefaultNil(sess.ProxyServerID),
+			}),
 		}
 
 		_, err := t.Tasker.RunOnBackground(tasker.Task{

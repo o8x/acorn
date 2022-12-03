@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/o8x/acorn/backend/database/queries"
+	"github.com/o8x/acorn/backend/model"
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/scripts"
 	"github.com/o8x/acorn/backend/ssh"
@@ -99,17 +100,15 @@ func (s *SessionService) UpdateSession(it EditSessionParams) *response.Response 
 	if it.Type == "linux" {
 		conn := ssh.Start(ssh.SSH{
 			Config: queries.Connect{
-				Host:     it.Host,
-				Username: it.Username,
-				Port:     it.Port,
-				Password: it.Password,
-				AuthType: it.AuthType,
+				Host:          it.Host,
+				Username:      it.Username,
+				Port:          it.Port,
+				Password:      it.Password,
+				AuthType:      it.AuthType,
+				ProxyServerID: it.ProxyServerID,
 			},
+			ProxyConfig: model.FindSessionDefaultNil(it.ProxyServerID),
 		})
-
-		if err := conn.Connect(); err != nil {
-			return response.Error(err)
-		}
 
 		info, err := ssh.ProberOSInfo(conn)
 		if err != nil {
