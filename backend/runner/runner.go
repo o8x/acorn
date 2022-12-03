@@ -109,6 +109,16 @@ func (p *Runner) run(pb Playbook, log *logger.Logger) error {
 			v = v1
 		}
 
+		if v1, ok := task["builtin.remote.fs.copy"]; ok {
+			plugin = &filesystem.RemoteCopy{}
+			v = v1
+		}
+
+		if v1, ok := task["builtin.remote.fs.move"]; ok {
+			plugin = &filesystem.RemoteMove{}
+			v = v1
+		}
+
 		if plugin == nil {
 			return fmt.Errorf("plugin not found")
 		}

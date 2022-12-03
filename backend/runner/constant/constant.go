@@ -19,6 +19,17 @@ type RemoteDeleteParams struct {
 	CheckExist bool   `json:"check_exist"`
 }
 
+type RemoteCopyParams struct {
+	Source string `json:"source"`
+	Target string `json:"target"`
+	IsDir  bool   `json:"is_dir"`
+}
+
+type RemoteMoveParams struct {
+	Source string `json:"source"`
+	Target string `json:"target"`
+}
+
 type PluginTypes interface {
-	RemoteDeleteParams | FileTransferParams | ShellParams
+	RemoteDeleteParams | FileTransferParams | ShellParams | RemoteCopyParams | RemoteMoveParams
 }
