@@ -97,7 +97,8 @@ order by automation.id desc;
 
 -- name: CreateAutomationLog :one
 insert into automation_logs (automation_id, contents)
-values (?, '') RETURNING id;
+values (?, '')
+RETURNING id;
 
 -- name: AppendAutomationLog :exec
 update automation_logs
@@ -277,3 +278,9 @@ where key = 'edit_file_sum_count';
 update config
 set value = (value + 1)
 where key = 'delete_file_sum_count';
+
+/*TAGS-------------------------------------------*/
+
+-- name: GetTags :many
+select *
+from tags;

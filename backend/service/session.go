@@ -14,19 +14,8 @@ import (
 	"github.com/o8x/acorn/backend/utils/stringbuilder"
 )
 
-type Sess struct {
-	queries.Connect
-	Workdir    string        `json:"-"`
-	Tags       []interface{} `json:"tags"`
-	TagsString string        `json:"tags_string"`
-}
-
 type SessionService struct {
 	*Service
-}
-
-func (s *SessionService) GetTags() {
-
 }
 
 func (s *SessionService) GetSessions() *response.Response {

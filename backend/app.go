@@ -113,6 +113,41 @@ func (c *App) registerMenus(current *menu.Menu) {
 		c.ConnectSessionService.OpenLocalConsole()
 	})
 
+	sessMenu := current.AddSubmenu("Session")
+	sessions := model.GetSessions()
+
+	// 常用会话
+	for i, sess := range sessions[:10] {
+		sessMenu.AddText(fmt.Sprintf("%2d. %s", i+1, sess.Label), nil, func(data *menu.CallbackData) {
+			resp := c.ConnectSessionService.OpenSSHSession(sess.ID, "")
+			if msg, ok := resp.IsError(); ok {
+				utils.Message(c.Context, fmt.Sprintf("会话打开失败: %s", msg))
+			}
+		})
+	}
+
+	sessMenu.AddSeparator()
+	count := sessMenu.AddText(fmt.Sprintf("Sessions Sum Count: %d", len(sessions)), nil, nil)
+	count.Disabled = true
+	for _, tag := range model.GetTags() {
+		var subList []*model.Sess
+		for _, sess := range sessions {
+			if sess.InTag(tag.ID) {
+				subList = append(subList, sess)
+			}
+		}
+
+		// 避免出现空的列表
+		if subList != nil {
+			subTag := sessMenu.AddSubmenu(tag.Name)
+			for _, sess := range subList {
+				subTag.AddText(sess.Label, nil, func(data *menu.CallbackData) {
+					c.ConnectSessionService.OpenSSHSession(sess.ID, "")
+				})
+			}
+		}
+	}
+
 	fileMenu := current.AddSubmenu("Settings")
 	fileMenu.AddText("Export", keys.CmdOrCtrl("w"), func(data *menu.CallbackData) {
 		c.Connect.ExportAll(c.Context)
