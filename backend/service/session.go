@@ -53,6 +53,7 @@ func (s *SessionService) DeleteConnect(id int64) *response.Response {
 		return response.Error(err)
 	}
 
+	s.Hooks.Exec("reload.session.menu")
 	return response.NoContent()
 }
 
@@ -128,6 +129,7 @@ func (s *SessionService) UpdateSession(it EditSessionParams) *response.Response 
 		return response.Error(err)
 	}
 
+	s.Hooks.Exec("reload.session.menu")
 	return response.NoContent()
 }
 
@@ -149,6 +151,7 @@ func (s *SessionService) PingConnect(id int64) *response.Response {
 		return response.Error(err)
 	}
 
+	s.Hooks.Exec("reload.session.menu")
 	script := scripts.Script{}
 	params := scripts.PrepareParams{
 		Password: sess.Password,
@@ -176,6 +179,7 @@ func (s *SessionService) TopConnect(id int64) *response.Response {
 		return response.Error(err)
 	}
 
+	s.Hooks.Exec("reload.session.menu")
 	sb, err := s.makeSSHArgs(sess)
 	sb.WriteString(`'htop -d 10 || top -d 1'`)
 
@@ -223,6 +227,7 @@ func (s *SessionService) OpenRDPSession(sess queries.Connect) *response.Response
 		return response.Error(err)
 	}
 
+	s.Hooks.Exec("reload.session.menu")
 	filename, err := s.makeRDPFileForSession(sess)
 	if err != nil {
 		return response.Error(err)
@@ -276,6 +281,7 @@ func (s *SessionService) OpenSSHSession(id int64, workdir string) *response.Resp
 		return response.Error(err)
 	}
 
+	s.Hooks.Exec("reload.session.menu")
 	sb, err := s.makeSSHArgs(sess)
 	sb.WriteStringFunc(func(builder *stringbuilder.Builder) {
 		if workdir != "" {
@@ -320,5 +326,6 @@ func (s *SessionService) CreateSession(connect queries.CreateSessionParams) *res
 		return response.Error(err)
 	}
 
+	s.Hooks.Exec("reload.session.menu")
 	return response.NoContent()
 }

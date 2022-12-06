@@ -100,6 +100,7 @@ func (c *App) initDatabase() {
 
 func (c *App) initBaseService() {
 	baseService.DB = database.GetQueries()
+	baseService.Hooks = service.NewHooks()
 	baseService.Context = c.Context
 	baseService.Message = &service.Message{Context: c.Context}
 	baseService.Tasker = &tasker.Tasker{
@@ -108,13 +109,14 @@ func (c *App) initBaseService() {
 	}
 }
 func (c *App) registerMenus(menus *menu.Menu) {
-	m, _ := menu2.NewSessionMenu(c.Context, c.ConnectSessionService)
+	m, reload := menu2.NewSessionMenu(c.Context, c.ConnectSessionService)
 	menus.Append(menu2.NewTerminalMenu(c.ConnectSessionService))
 	menus.Append(m)
 	menus.Append(menu2.NewWindowMenu(c.Context))
 	menus.Append(menu2.NewThemeMenu(c.Context, c.SettingService))
 	menus.Append(menu2.NewSettingMenu(c.Context))
 
+	baseService.Hooks.Store("reload.session.menu", reload)
 	runtime.MenuSetApplicationMenu(c.Context, menus)
 	runtime.MenuUpdateApplicationMenu(c.Context)
 }
