@@ -22,6 +22,11 @@ func (s *Plugin[T]) RemoteFileExist(file string) bool {
 	return err == nil
 }
 
+func (s *Plugin[T]) RemoteMakeDir(dir string) bool {
+	_, err := s.SSH.ExecShellCode(fmt.Sprintf(`mkdir -p '%s'`, dir))
+	return err == nil
+}
+
 func (s *Plugin[T]) ParseParams(params []byte) error {
 	var args T
 	if err := json.Unmarshal(params, &args); err != nil {

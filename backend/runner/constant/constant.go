@@ -1,9 +1,18 @@
 package constant
 
 type FileTransferParams struct {
-	Src       string `json:"src"`
-	Dst       string `json:"dst"`
-	Overwrite bool   `json:"overwrite"`
+	Src         string `json:"src"`
+	Dst         string `json:"dst"`
+	Overwrite   string `json:"overwrite"`
+	AutoMakeDir bool   `json:"auto_mkdir"`
+}
+
+func (p FileTransferParams) OverwriteIsSkip() bool {
+	return p.Overwrite == "skip"
+}
+
+func (p FileTransferParams) OverwriteIsStop() bool {
+	return p.Overwrite == "stop"
 }
 
 type ShellParams struct {

@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"math/big"
 	"os"
 	"os/exec"
@@ -10,6 +11,24 @@ import (
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
+
+func SizeBeautify(size int64) string {
+	f := float64(size)
+
+	if f < 1000 {
+		return fmt.Sprintf("%d", size)
+	}
+
+	if f >= 1000 && f < 1000000 {
+		return fmt.Sprintf(`%.2fKB`, f/1000)
+	}
+
+	if f >= 1000000 && f < 1000000000 {
+		return fmt.Sprintf(`%.2fMB`, f/1000000)
+	}
+
+	return fmt.Sprintf(`%.2fGB`, f/1000000000)
+}
 
 func JoinFilename(dir, filename string) string {
 	_, name := filepath.Split(filename)
