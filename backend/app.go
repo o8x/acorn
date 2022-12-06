@@ -12,11 +12,11 @@ import (
 
 	"github.com/pkg/sftp"
 	"github.com/wailsapp/wails/v2/pkg/menu"
-	"github.com/wailsapp/wails/v2/pkg/menu/keys"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"github.com/o8x/acorn/backend/database"
 	"github.com/o8x/acorn/backend/database/queries"
+	menu2 "github.com/o8x/acorn/backend/menu"
 	"github.com/o8x/acorn/backend/model"
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/service"
@@ -107,120 +107,16 @@ func (c *App) initBaseService() {
 		DB:      database.GetQueries(),
 	}
 }
-func (c *App) registerMenus(current *menu.Menu) {
-	terminalMenu := current.AddSubmenu("Terminal")
-	terminalMenu.AddText("New Terminal Window", keys.CmdOrCtrl("t"), func(data *menu.CallbackData) {
-		c.ConnectSessionService.OpenLocalConsole()
-	})
+func (c *App) registerMenus(menus *menu.Menu) {
+	m, _ := menu2.NewSessionMenu(c.Context, c.ConnectSessionService)
+	menus.Append(menu2.NewTerminalMenu(c.ConnectSessionService))
+	menus.Append(m)
+	menus.Append(menu2.NewWindowMenu(c.Context))
+	menus.Append(menu2.NewThemeMenu(c.Context, c.SettingService))
+	menus.Append(menu2.NewSettingMenu(c.Context))
 
-	sessMenu := current.AddSubmenu("Session")
-	sessions := model.GetSessions()
-
-	// 常用会话
-	for i, sess := range sessions[:10] {
-		sessMenu.AddText(fmt.Sprintf("%2d. %s", i+1, sess.Label), nil, func(data *menu.CallbackData) {
-			resp := c.ConnectSessionService.OpenSSHSession(sess.ID, "")
-			if msg, ok := resp.IsError(); ok {
-				utils.Message(c.Context, fmt.Sprintf("会话打开失败: %s", msg))
-			}
-		})
-	}
-
-	sessMenu.AddSeparator()
-	count := sessMenu.AddText(fmt.Sprintf("Sessions Sum Count: %d", len(sessions)), nil, nil)
-	count.Disabled = true
-	for _, tag := range model.GetTags() {
-		var subList []*model.Sess
-		for _, sess := range sessions {
-			if sess.InTag(tag.ID) {
-				subList = append(subList, sess)
-			}
-		}
-
-		// 避免出现空的列表
-		if subList != nil {
-			subTag := sessMenu.AddSubmenu(tag.Name)
-			for _, sess := range subList {
-				subTag.AddText(sess.Label, nil, func(data *menu.CallbackData) {
-					c.ConnectSessionService.OpenSSHSession(sess.ID, "")
-				})
-			}
-		}
-	}
-
-	fileMenu := current.AddSubmenu("Settings")
-	fileMenu.AddText("Export", keys.CmdOrCtrl("w"), func(data *menu.CallbackData) {
-		c.Connect.ExportAll(c.Context)
-	})
-	fileMenu.AddText("Import", keys.CmdOrCtrl("i"), func(data *menu.CallbackData) {
-		utils.Message(c.Context, "尚未实现")
-	})
-
-	fileMenu.AddSeparator()
-
-	theme := current.AddSubmenu("Theme")
-	item := theme.AddText("", nil, nil)
-
-	updateMenu := func() {
-		item.Label = fmt.Sprintf("Theme: %s", model.GetTheme())
-		item.Disabled = true
-
-		runtime.EventsEmit(c.Context, "update-theme")
-		runtime.MenuSetApplicationMenu(c.Context, current)
-		runtime.MenuUpdateApplicationMenu(c.Context)
-	}
-
-	theme.AddSeparator()
-	theme.AddText("Reset Default", nil, func(data *menu.CallbackData) {
-		c.SettingService.UseDefaultTheme()
-		updateMenu()
-	})
-
-	theme.AddText("Switch Light", nil, func(data *menu.CallbackData) {
-		c.SettingService.UseLightTheme()
-		updateMenu()
-	})
-
-	theme.AddText("Switch Dark", nil, func(data *menu.CallbackData) {
-		c.SettingService.UseDarkTheme()
-		updateMenu()
-	})
-
-	theme.AddText("Switch Gary", nil, func(data *menu.CallbackData) {
-		c.SettingService.UseGrayTheme()
-		updateMenu()
-	})
-
-	resize := current.AddSubmenu("Window")
-	resize.AddText("Reload", nil, func(data *menu.CallbackData) {
-		runtime.WindowReload(c.Context)
-	})
-
-	resize.AddText("Reload UI", nil, func(data *menu.CallbackData) {
-		runtime.WindowReloadApp(c.Context)
-	})
-
-	resize.AddText("As Default Size", nil, func(data *menu.CallbackData) {
-		runtime.WindowSetSize(c.Context, 1024, 650)
-	})
-
-	resize.AddText("Toggle Maximise", nil, func(data *menu.CallbackData) {
-		runtime.WindowToggleMaximise(c.Context)
-	})
-
-	resize.AddText("As Maximise", nil, func(data *menu.CallbackData) {
-		runtime.WindowMaximise(c.Context)
-	})
-
-	resize.AddText("As Minimise", nil, func(data *menu.CallbackData) {
-		runtime.WindowMinimise(c.Context)
-	})
-
-	resize.AddText("Move To Center", nil, func(data *menu.CallbackData) {
-		runtime.WindowCenter(c.Context)
-	})
-
-	updateMenu()
+	runtime.MenuSetApplicationMenu(c.Context, menus)
+	runtime.MenuUpdateApplicationMenu(c.Context)
 }
 
 func (c *App) registerRouter(ctx context.Context) {
