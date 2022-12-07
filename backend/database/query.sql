@@ -88,12 +88,12 @@ set playbook = ?,
     desc     = ?
 where id = ?;
 
--- name: GetAutomationLogs :many
-select automation_logs.*
+-- name: GetLastAutomationLog :one
+select *
 from automation_logs
-         join automation on automation.id = automation_logs.automation_id
 where automation_id = ?
-order by automation.id desc;
+order by id desc
+limit 1;
 
 -- name: CreateAutomationLog :one
 insert into automation_logs (automation_id, contents)
@@ -109,7 +109,8 @@ where id = ?;
 
 -- name: CreateTask :one
 insert into tasks (title, command, description, result, status)
-values (?, ?, ?, ?, 'running') RETURNING *;
+values (?, ?, ?, ?, 'running')
+RETURNING *;
 
 -- name: CopyTask :exec
 insert into tasks (title, command, result, status)

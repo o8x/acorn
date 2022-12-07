@@ -76,11 +76,7 @@ tasks:
         SessionService.GetSessions().then(then(data => {
             let id = 0
             Modal.confirm({
-                title: <>在何处运行自动化 [{item.name}]</>,
-                cancelText: "取消",
-                width: 600,
-                icon: null,
-                content: <>
+                title: <>在何处运行自动化 [{item.name}]</>, cancelText: "取消", width: 600, icon: null, content: <>
                     <br/>
                     <Space split={":"}>
                         选择目标会话
@@ -96,8 +92,7 @@ tasks:
                             })}
                         </Select>
                     </Space>
-                </>,
-                onOk() {
+                </>, onOk() {
                     localStorage.setItem(`S${item.id}`, id)
                     AutomationService.RunAutomation(item.id, id).then(success(`${item.name} 已开始执行`))
                 },
@@ -107,14 +102,9 @@ tasks:
 
     const del = item => {
         Modal.confirm({
-            title: "删除自动化",
-            cancelText: "取消",
-            width: 600,
-            icon: null,
-            content: <>
+            title: "删除自动化", cancelText: "取消", width: 600, icon: null, content: <>
                 即将删除自动化: <b>[{item.name}]</b>
-            </>,
-            onOk() {
+            </>, onOk() {
                 AutomationService.DeleteAutomation(item.id).then(then(reload))
             },
         })
@@ -124,14 +114,14 @@ tasks:
         mr.current.setTitle(`[${item.name}] 运行日志`)
         mr.current.setWidth(800)
         mr.current.setStyle({top: 20})
-        AutomationService.GetAutomationLogs(item.id).then(then(data => {
-            if (data.body.length === 0) {
-                return message.error("无日志")
-            }
 
-            mr.current.setContent(<Editor value={data.body[data.body.length - 1].contents} readonly height="400px"/>)
-            mr.current.show()
+        const refreshLog = () => AutomationService.GetLastAutomationLog(item.id).then(then(data => {
+            mr.current.setContent(<Editor value={data.body.contents} readonly height="400px"/>)
         }))
+
+        refreshLog()
+        let interval = setInterval(refreshLog, 500)
+        mr.current.show(null, () => clearInterval(interval))
     }
 
     return <Container title="自动化" subTitle="提供类 ansible 的自动化功能">

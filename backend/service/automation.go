@@ -33,8 +33,8 @@ func (t *AutomationService) DeleteAutomation(id int64) *response.Response {
 	return response.NoContent()
 }
 
-func (t *AutomationService) GetAutomationLogs(id int64) *response.Response {
-	logs, err := t.DB.GetAutomationLogs(t.Context, id)
+func (t *AutomationService) GetLastAutomationLog(id int64) *response.Response {
+	logs, err := t.DB.GetLastAutomationLog(t.Context, id)
 	if err != nil {
 		return response.Error(err)
 	}
