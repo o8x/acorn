@@ -5,12 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/o8x/acorn/backend/runner/constant"
 	"github.com/o8x/acorn/backend/runner/logger"
 	"github.com/o8x/acorn/backend/ssh"
 )
 
-type Plugin[T constant.PluginTypes] struct {
+type Plugin[T any] struct {
 	SSH     *ssh.SSH        `json:"ssh"`
 	Params  *T              `json:"params"`
 	Context context.Context `json:"context"`

@@ -38,7 +38,3 @@ type RemoteMoveParams struct {
 	Source string `json:"source"`
 	Target string `json:"target"`
 }
-
-type PluginTypes interface {
-	RemoteDeleteParams | FileTransferParams | ShellParams | RemoteCopyParams | RemoteMoveParams
-}
