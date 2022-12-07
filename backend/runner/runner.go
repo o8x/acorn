@@ -119,6 +119,16 @@ func (p *Runner) run(pb Playbook, log *logger.Logger) error {
 			v = v1
 		}
 
+		if v1, ok := task["builtin.remote.fs.mkdir"]; ok {
+			plugin = &filesystem.RemoteMakeDir{}
+			v = v1
+		}
+
+		if v1, ok := task["builtin.local.fs.mkdir"]; ok {
+			plugin = &filesystem.LocalMakeDir{}
+			v = v1
+		}
+
 		if plugin == nil {
 			return fmt.Errorf("plugin not found")
 		}

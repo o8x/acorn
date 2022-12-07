@@ -28,6 +28,12 @@ type RemoteDeleteParams struct {
 	CheckExist bool   `json:"check_exist"`
 }
 
+type MakeDirParams struct {
+	Path      string `json:"path"`
+	Perm      string `json:"perm"`
+	Recursion bool   `json:"recursion"`
+}
+
 type RemoteCopyParams struct {
 	Source string `json:"source"`
 	Target string `json:"target"`
