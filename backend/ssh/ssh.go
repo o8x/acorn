@@ -5,7 +5,6 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"sync"
@@ -16,6 +15,7 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"github.com/o8x/acorn/backend/database/queries"
+	"github.com/o8x/acorn/backend/utils/iocopy"
 )
 
 var (
@@ -108,50 +108,44 @@ func (conn *SSH) GetClient() *ssh.Client {
 	return conn.client
 }
 
-func (conn *SSH) SCPUpload(srcName, dstName string) error {
+func (conn *SSH) SCPUpload(srcName, dstName string) (*iocopy.IOCopy, error) {
 	client, err := sftp.NewClient(conn.GetClient())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer client.Close()
 
 	src, err := os.OpenFile(srcName, os.O_RDONLY, 0777)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	defer src.Close()
 
 	dst, err := client.OpenFile(dstName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	defer dst.Close()
 
-	_, err = io.Copy(dst, src)
-	return err
+	return iocopy.New(src, dst), nil
 }
 
-func (conn *SSH) SCPDownload(srcName string, dstName string) error {
+func (conn *SSH) SCPDownload(srcName string, dstName string) (*iocopy.IOCopy, error) {
 	client, err := sftp.NewClient(conn.GetClient())
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer client.Close()
 
-	dst, err := os.OpenFile(dstName, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0777)
+	dst, err := os.OpenFile(dstName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0775)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	src, err := client.OpenFile(srcName, os.O_RDONLY)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	defer src.Close()
-	defer dst.Close()
 
-	_, err = io.Copy(dst, src)
-	return err
+	return iocopy.New(dst, src), nil
 }
 
 func (conn *SSH) OpenSession(retry bool) error {
@@ -187,7 +181,7 @@ func (conn *SSH) ExecPythonCode(py []byte) (*bytes.Buffer, error) {
 		return nil, err
 	}
 
-	cmd := fmt.Sprintf(`python3 %s || python %s`, filename, filename)
+	cmd := fmt.Sprintf(`python3 %s 2>/tmp/py3.error || python %s 2>/tmp/py2.error`, filename, filename)
 	if buf, err = conn.ExecShellCode(cmd); err != nil {
 		return nil, err
 	}
