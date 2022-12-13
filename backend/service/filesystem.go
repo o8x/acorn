@@ -106,7 +106,12 @@ func (t *FileSystemService) DownloadFiles(id int64, src string) *response.Respon
 			ProxyConfig: proxy,
 		})
 
-		return conn.SCPDownload(src, dst)
+		download, err := conn.SCPDownload(src, dst)
+		if err != nil {
+			return err
+		}
+
+		return download.Start()
 	})
 	if err != nil {
 		return response.Error(err)
@@ -162,7 +167,12 @@ func (t *FileSystemService) UploadFiles(id int64, dst string) *response.Response
 		})
 
 		for _, name := range files {
-			if err := conn.SCPUpload(name, utils.JoinFilename(dst, name)); err != nil {
+			upload, err := conn.SCPUpload(name, utils.JoinFilename(dst, name))
+			if err != nil {
+				return fmt.Errorf("build upload %s failed, error: %v", name, err)
+			}
+
+			if err := upload.Start(); err != nil {
 				return fmt.Errorf("upload %s failed, error: %v", name, err)
 			}
 		}

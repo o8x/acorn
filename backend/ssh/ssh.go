@@ -113,7 +113,6 @@ func (conn *SSH) SCPUpload(srcName, dstName string) (*iocopy.IOCopy, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer client.Close()
 
 	src, err := os.OpenFile(srcName, os.O_RDONLY, 0777)
 	if err != nil {

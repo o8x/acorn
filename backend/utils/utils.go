@@ -12,7 +12,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-func SizeBeautify(size int64) string {
+func SizeBeautify(size int64, length int) string {
 	f := float64(size)
 
 	if f < 1000 {
@@ -20,14 +20,18 @@ func SizeBeautify(size int64) string {
 	}
 
 	if f >= 1000 && f < 1000000 {
-		return fmt.Sprintf(`%.2fKB`, f/1000)
+		format := fmt.Sprintf("%%.%dfKB", length)
+
+		return fmt.Sprintf(format, f/1000)
 	}
 
 	if f >= 1000000 && f < 1000000000 {
-		return fmt.Sprintf(`%.2fMB`, f/1000000)
+		format := fmt.Sprintf("%%.%dfMB", length)
+		return fmt.Sprintf(format, f/1000000)
 	}
 
-	return fmt.Sprintf(`%.2fGB`, f/1000000000)
+	format := fmt.Sprintf("%%.%dfGB", length)
+	return fmt.Sprintf(format, f/1000000000)
 }
 
 func JoinFilename(dir, filename string) string {

@@ -9,6 +9,7 @@ import (
 	"github.com/o8x/acorn/backend/runner/base"
 	"github.com/o8x/acorn/backend/runner/constant"
 	"github.com/o8x/acorn/backend/utils"
+	"github.com/o8x/acorn/backend/utils/iocopy"
 	"github.com/o8x/acorn/backend/utils/messagebox"
 )
 
@@ -18,7 +19,8 @@ type DownloadPlugin struct {
 
 func (s *DownloadPlugin) Run() (string, error) {
 	if s.Params.Dst == "$select" {
-		s.Params.Dst = messagebox.SelectDirectory(s.Context, "~/Download")
+		s.Params.Dst = messagebox.SelectDirectory(s.Context, "/")
+		s.Params.Dst = utils.JoinFilename(s.Params.Dst, s.Params.Src)
 	}
 
 	if s.Params.Dst == "" {
@@ -32,7 +34,7 @@ func (s *DownloadPlugin) Run() (string, error) {
 	out, err := s.SSH.ExecShellCode(fmt.Sprintf(`stat -c "%%s" %s `, s.Params.Src))
 	if err == nil {
 		if size, err := strconv.ParseInt(out.String(), 10, 64); err == nil {
-			s.Logger.Write("file size: %s (%d)", utils.SizeBeautify(size), size)
+			s.Logger.Write("file size: %s (%d)", utils.SizeBeautify(size, 2), size)
 		}
 	}
 
@@ -60,5 +62,11 @@ func (s *DownloadPlugin) Run() (string, error) {
 		}
 	}
 
-	return "", s.SSH.SCPDownload(s.Params.Src, s.Params.Dst)
+	download, err := s.SSH.SCPDownload(s.Params.Src, s.Params.Dst)
+	if err != nil {
+		return "", err
+	}
+
+	download.ProcessBar(iocopy.DefaultProcessBar(s.Logger))
+	return "", download.Start()
 }

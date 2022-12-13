@@ -7,8 +7,9 @@ import (
 	"strings"
 
 	"github.com/o8x/acorn/backend/runner/base"
-	"github.com/o8x/acorn/backend/utils"
 	"github.com/o8x/acorn/backend/runner/constant"
+	"github.com/o8x/acorn/backend/utils"
+	"github.com/o8x/acorn/backend/utils/iocopy"
 	"github.com/o8x/acorn/backend/utils/messagebox"
 )
 
@@ -32,7 +33,7 @@ func (s *UploadPlugin) Run() (string, error) {
 	s.Logger.Write("src file: %s", s.Params.Src)
 	stat, err := os.Stat(s.Params.Src)
 	if err == nil {
-		s.Logger.Write("file size: %s (%d)", utils.SizeBeautify(stat.Size()), stat.Size())
+		s.Logger.Write("file size: %s (%d)", utils.SizeBeautify(stat.Size(), 2), stat.Size())
 	}
 
 	s.Logger.Write("dst file: %s", s.Params.Dst)
@@ -51,5 +52,11 @@ func (s *UploadPlugin) Run() (string, error) {
 		return "", fmt.Errorf("auto mkdir %s failed on remote", dir)
 	}
 
-	return "", s.SSH.SCPUpload(s.Params.Src, s.Params.Dst)
+	upload, err := s.SSH.SCPUpload(s.Params.Src, s.Params.Dst)
+	if err != nil {
+		return "", err
+	}
+
+	upload.ProcessBar(iocopy.DefaultProcessBar(s.Logger))
+	return "", upload.Start()
 }
