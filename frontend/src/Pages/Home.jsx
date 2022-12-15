@@ -1,28 +1,10 @@
 import React, {useEffect, useState} from "react"
 import Container from "./Container"
 import "./Home.css"
-import {
-    Avatar,
-    Button,
-    Card,
-    Col,
-    Divider,
-    Drawer,
-    Form,
-    Input,
-    message,
-    PageHeader,
-    Radio,
-    Row,
-    Statistic,
-    Tag,
-    Typography,
-} from "antd"
+import {Avatar, Card, Col, Divider, message, PageHeader, Row, Statistic, Tag, Typography} from "antd"
 import BrowserLink from "../Components/BrowserLink"
 import Meta from "antd/es/card/Meta"
 import {getLogoSrc} from "../Helpers/logo"
-import {SaveOutlined} from "@ant-design/icons"
-import TextArea from "antd/es/input/TextArea"
 import moment from "moment"
 import He from "../Components/He"
 import {SessionService, then} from "../rpc"
@@ -73,8 +55,6 @@ const timeSegment = () => {
 }
 
 export default function (props) {
-    let ref = React.createRef()
-    let [showAdd, setShowAdd] = useState(false)
     const [activeTabKey, setActiveTabKey] = useState("connect")
     const [connects, setConnects] = useState([])
     const [recent, setRecent] = useState([])
@@ -177,42 +157,6 @@ export default function (props) {
         return now.weekday() <= 5
     }
 
-    const submitValues = () => {
-        let values = ref.current.getFieldsValue(true)
-        if (!values.type) {
-            values.type = "recent"
-        }
-
-        if (!values.url || !values.label) {
-            return message.error("URL和备注必填")
-        }
-
-        let data = {
-            label: values.label,
-            logo_url: values.logo_url,
-            url: values.url,
-            type: values.type,
-        }
-
-        try {
-            let u = new URL(values.url)
-            data.logo_url = `${u.origin}/favicon.ico`
-        } catch (e) {
-            return message.error("无法解析url：" + e.message)
-        }
-
-        window.runtime.EventsOnce("add_recent_reply", data => {
-            if (data.status_code === 500) {
-                return message.error(data.message)
-            }
-
-            loadRecent()
-            setShowAdd(false)
-            message.success("添加完成")
-        })
-        window.runtime.EventsEmit("add_recent", data)
-    }
-
     let heRef = React.createRef()
     useEffect(function () {
         loadList()
@@ -258,52 +202,12 @@ export default function (props) {
                     width: "100%",
                 }}
                 tabList={tabs}
-                activeTabKey={activeTabKey}
                 onTabChange={(key) => {
                     onTab2Change(key)
                 }}
-                extra={<a href="#" onClick={() => setShowAdd(true)}>添加</a>}
             >
                 {contentListNoTitle[activeTabKey]}
             </Card>
         </Row>
-
-        <Drawer
-            title="添加"
-            placement="right"
-            width={500}
-            open={showAdd}
-            visible={showAdd}
-            onClose={() => setShowAdd(false)}
-            closable={true}
-            extra={<Button icon={<SaveOutlined/>} type="primary" onClick={submitValues}>提交</Button>}
-        >
-            <Form
-                ref={ref}
-                labelCol={{span: 4}}
-                layout="horizontal"
-                size="default"
-            >
-                <Form.Item label="类型" name="type" rules={[{required: true}]}>
-                    <Radio.Group allowClear defaultValue="recent">
-                        {tabs.map(it => {
-                            if (it.key === "connect") {
-                                return
-                            }
-                            return <Radio.Button value={it.key} key={it.key}>{it.tab}</Radio.Button>
-                        })}
-                    </Radio.Group>
-                </Form.Item>
-                <Form.Item label="备注" name="label" rules={[{required: true}]}>
-                    <Input placeholder="备注信息" allowClear/>
-                </Form.Item>
-                <Form.Item label="LOGO" name="logo_url">
-                    <Input placeholder="网站LOGO链接，默认为 fav.icon" allowClear/>
-                </Form.Item>
-                <Form.Item label="链接" name="url" rules={[{required: true}]}>
-                    <TextArea rows={10} placeholder="目标网站的URL" allowClear/>
-                </Form.Item>
-            </Form>
-        </Drawer>
     </Container>
 }
