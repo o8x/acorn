@@ -90,6 +90,14 @@ func (t *AutomationService) RunAutomation(id, sessionID int64) *response.Respons
 		return response.Error(err)
 	}
 
+	if err = t.DB.StatsIncAutomation(t.Context); err != nil {
+		return response.Error(err)
+	}
+
+	if err = t.DB.UpdateSessionUseTime(t.Context, sessionID); err != nil {
+		return response.Error(err)
+	}
+
 	logID, err := t.DB.CreateAutomationLog(t.Context, id)
 	if err != nil {
 		return response.Error(err)

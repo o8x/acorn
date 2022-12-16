@@ -53,6 +53,7 @@ func Init(filename string) error {
 		"edit_file_sum_count":          0,
 		"delete_file_sum_count":        0,
 		"scp_upload_base64_sum_count":  0,
+		"automation_sum_count":         0,
 		"theme":                        "light",
 	}
 

@@ -38,6 +38,7 @@ const (
 	CopyIDStatsKey          = "copy_id_sum_count"
 	EditFileStatsKey        = "edit_file_sum_count"
 	DeleteFileStatsKey      = "delete_file_sum_count"
+	AutomationStatsKey      = "automation_sum_count"
 )
 
 type Connect struct {

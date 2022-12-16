@@ -413,6 +413,7 @@ func (c *App) registerRouter(ctx context.Context) {
 			CopyIDStatsKey,
 			EditFileStatsKey,
 			DeleteFileStatsKey,
+			AutomationStatsKey,
 		}
 
 		r := stats{}

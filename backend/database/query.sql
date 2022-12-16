@@ -280,6 +280,11 @@ update config
 set value = (value + 1)
 where key = 'delete_file_sum_count';
 
+-- name: StatsIncAutomation :exec
+update config
+set value = (value + 1)
+where key = 'automation_sum_count';
+
 /*TAGS-------------------------------------------*/
 
 -- name: GetTags :many
