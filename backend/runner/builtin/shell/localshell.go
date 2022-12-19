@@ -16,9 +16,10 @@ type LocalShell struct {
 
 func (s *LocalShell) Run() (string, error) {
 	envs := os.Environ()
+	envs = append(envs, fmt.Sprintf(`PATH=%s:/opt/homebrew/sbin:/opt/homebrew/bin:/usr/local/bin`, os.Getenv("PATH")))
 	if s.Params.Environments != nil {
 		for k, v := range s.Params.Environments {
-			envs = append(envs, fmt.Sprintf("%s='%s'", k, v))
+			envs = append(envs, fmt.Sprintf("%s=%s", k, v))
 			s.Logger.Write("with environment: %s=%s", k, v)
 		}
 	}
