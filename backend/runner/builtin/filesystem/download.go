@@ -8,6 +8,7 @@ import (
 
 	"github.com/o8x/acorn/backend/runner/base"
 	"github.com/o8x/acorn/backend/runner/constant"
+	utils2 "github.com/o8x/acorn/backend/runner/utils"
 	"github.com/o8x/acorn/backend/utils"
 	"github.com/o8x/acorn/backend/utils/iocopy"
 	"github.com/o8x/acorn/backend/utils/messagebox"
@@ -18,6 +19,8 @@ type DownloadPlugin struct {
 }
 
 func (s *DownloadPlugin) Run() (string, error) {
+	s.Params.Dst = utils2.FillEnv(s.Params.Dst)
+
 	if s.Params.Dst == "$select" {
 		s.Params.Dst = messagebox.SelectDirectory(s.Context, "/")
 		s.Params.Dst = utils.JoinFilename(s.Params.Dst, s.Params.Src)

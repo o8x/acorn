@@ -8,6 +8,7 @@ import (
 
 	"github.com/o8x/acorn/backend/runner/base"
 	"github.com/o8x/acorn/backend/runner/constant"
+	utils2 "github.com/o8x/acorn/backend/runner/utils"
 	"github.com/o8x/acorn/backend/utils"
 	"github.com/o8x/acorn/backend/utils/iocopy"
 	"github.com/o8x/acorn/backend/utils/messagebox"
@@ -18,6 +19,8 @@ type UploadPlugin struct {
 }
 
 func (s *UploadPlugin) Run() (string, error) {
+	s.Params.Src = utils2.FillEnv(s.Params.Src)
+
 	if s.Params.Src == "$select" {
 		s.Params.Src = messagebox.SelectFile(s.Context)
 	}

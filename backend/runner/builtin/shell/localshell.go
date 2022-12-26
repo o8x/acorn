@@ -8,6 +8,7 @@ import (
 
 	"github.com/o8x/acorn/backend/runner/base"
 	"github.com/o8x/acorn/backend/runner/constant"
+	"github.com/o8x/acorn/backend/runner/utils"
 )
 
 type LocalShell struct {
@@ -30,10 +31,10 @@ func (s *LocalShell) Run() (string, error) {
 		cmd.Env = envs
 
 		if s.Params.WorkDir != "" {
-			cmd.Dir = s.Params.WorkDir
+			cmd.Dir = utils.FillEnv(s.Params.WorkDir)
 		}
 
-		s.Logger.Write("workdir: %s", c)
+		s.Logger.Write("workdir: %s", cmd.Dir)
 		s.Logger.Write("command: %s", cmd.String())
 
 		output, err := cmd.CombinedOutput()
