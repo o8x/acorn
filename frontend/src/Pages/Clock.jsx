@@ -25,24 +25,19 @@ const holidays = [{
     remarks: "4月5日放假，共1天。4月6日（星期四）上班。",
 }, {
     name: "劳动节",
-    startDate: moment("2023/05/01 00:00:00").subtract(6, "hours"),
-    endDate: moment("2023/05/05 23:59:59"),
-    remarks: "5月1日至5月5日放假调休，共5天。4月29日（星期六）4月30日（星期日）上班。",
+    startDate: moment("2023/04/29 00:00:00").subtract(6, "hours"),
+    endDate: moment("2023/05/03 23:59:59"),
+    remarks: "4月29日至5月3日放假调休，共5天。4月23日（星期日）、5月6日（星期六）上班。",
 }, {
     name: "端午节",
     startDate: moment("2023/06/22 00:00:00").subtract(6, "hours"),
     endDate: moment("2023/06/24 23:59:59"),
-    remarks: "6月22日至24日放假公休，共3天。6月25日（星期日）上班。",
+    remarks: "6月22日至24日放假调休，共3天。6月25日（星期日）上班。",
 }, {
-    name: "中秋节",
+    name: "中秋节、国庆节",
     startDate: moment("2023/09/29 00:00:00").subtract(6, "hours"),
     endDate: moment("2023/10/06 23:59:59"),
-    remarks: "9月29日至10月6日放假调休，共8天。10月7日（星期五）10月8日（星期六）上班。",
-}, {
-    name: "国庆节",
-    startDate: moment("2023/09/29 00:00:00").subtract(6, "hours"),
-    endDate: moment("2023/10/06 23:59:59"),
-    remarks: "9月29日至10月6日放假调休，共8天。10月7日（星期五）10月8日（星期六）上班。",
+    remarks: "9月29日至10月6日放假调休，共8天。10月7日（星期六）、10月8日（星期日）上班。",
 }]
 
 const getFuture = function () {
