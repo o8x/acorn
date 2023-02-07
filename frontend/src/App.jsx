@@ -8,6 +8,7 @@ import {
     BugOutlined,
     CheckOutlined,
     ClockCircleOutlined,
+    CloudServerOutlined,
     ControlOutlined,
     CreditCardOutlined,
     EditOutlined,
@@ -28,6 +29,7 @@ import TransRadix from "./Pages/TransRadix"
 import JsonFormat from "./Pages/JsonFormat"
 import ScriptEditor from "./Pages/ScriptEditor"
 import RegTest from "./Pages/RegTest"
+import TencentCos from "./Pages/TencentCos"
 import TextCodec from "./Pages/TextCodec"
 import MakePassword from "./Pages/MakePassword"
 import Timestamp from "./Pages/Timestamp"
@@ -62,6 +64,7 @@ const items = [
     getItem("cURL GUI", "/toy-proxyiptester", <BugOutlined/>),
     getItem("Toys", "/toy-toys", <ToolOutlined/>, [
         getItem("Clock", "/toy-clock", <FieldTimeOutlined/>),
+        getItem("Tencent COS", "/toy-cos", <CloudServerOutlined/>),
         getItem("Script", "/toy-scripteditor", <EditOutlined/>),
         getItem("Password", "/toy-makepass", <CreditCardOutlined/>),
         getItem("Ascii", "/toy-ascii", <BorderlessTableOutlined/>, [
@@ -83,6 +86,10 @@ export default function (props) {
         resetTheme()
 
         window.runtime.EventsOn("update-theme", resetTheme)
+        window.runtime.EventsOn("navigator", key => {
+            onSelect({key})
+        })
+
         window.runtime.EventsOn("message", data => {
             const config = {
                 message: data.title,
@@ -178,6 +185,9 @@ export default function (props) {
                     />
                     <Route path="/toy-automation"
                            element={<Automation collapsed={collapsed} setCollapse={setCollapsed}/>}
+                    />
+                    <Route path="/toy-cos"
+                           element={<TencentCos collapsed={collapsed} setCollapse={setCollapsed}/>}
                     />
                     <Route path="/"
                            element={<Home collapsed={collapsed} setCollapse={setCollapsed}/>}

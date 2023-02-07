@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
@@ -17,6 +18,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/tencentyun/cos-go-sdk-v5"
 
 	"github.com/o8x/acorn/backend/response"
 	"github.com/o8x/acorn/backend/scripts"
@@ -140,6 +143,60 @@ func (t ToolService) AesDecode(text string) *response.Response {
 	}
 
 	return response.OK(base64.StdEncoding.EncodeToString(encrypt))
+}
+
+type upload struct {
+	Blob      string `json:"blob"`
+	Bucket    string `json:"bucket"`
+	Region    string `json:"region"`
+	SecretID  string `json:"secret_id"`
+	SecretKey string `json:"secret_key"`
+	Src       string `json:"src"`
+	Subfix    string `json:"subfix"`
+}
+
+func buildCOSClient(info upload) *cos.Client {
+	u, _ := url.Parse(fmt.Sprintf("https://%s.cos.%s.myqcloud.com", info.Bucket, info.Region))
+	b := &cos.BaseURL{BucketURL: u}
+	return cos.NewClient(b, &http.Client{
+		Transport: &cos.AuthorizationTransport{
+			SecretID:  info.SecretID,
+			SecretKey: info.SecretKey,
+		},
+	})
+}
+
+func (t ToolService) DeleteBlobFromCos(data upload) *response.Response {
+	c := buildCOSClient(data)
+
+	u, err := url.Parse(data.Src)
+	if err != nil {
+		return response.Error(err)
+	}
+
+	if _, err := c.Object.Delete(context.Background(), u.Path, nil); err != nil {
+		return response.Error(err)
+	}
+
+	return response.NoContent()
+}
+
+func (t ToolService) UploadBlobToCos(data upload) *response.Response {
+	c := buildCOSClient(data)
+
+	if strings.Contains(data.Blob, ",") {
+		data.Blob = data.Blob[strings.IndexByte(data.Blob, ',')+1:]
+	}
+
+	blob, _ := base64.RawStdEncoding.DecodeString(data.Blob)
+	name := fmt.Sprintf("x/%d%s", time.Now().UnixMilli(), data.Subfix)
+	if _, err := c.Object.Put(context.Background(), name, bytes.NewReader(blob), nil); err != nil {
+		return response.Error(err)
+	}
+
+	return response.OK(map[string]string{
+		"u": fmt.Sprintf("%s/%s", c.BaseURL.BucketURL.String(), name),
+	})
 }
 
 func (t ToolService) RunTestWithCurl(data any) *response.Response {

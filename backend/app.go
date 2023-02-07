@@ -115,6 +115,7 @@ func (c *App) registerMenus(menus *menu.Menu) {
 	menus.Append(menu2.NewWindowMenu(c.Context))
 	menus.Append(menu2.NewThemeMenu(c.Context, c.SettingService))
 	menus.Append(menu2.NewSettingMenu(c.Context))
+	menus.Append(menu2.NewToysMenu(c.Context))
 
 	baseService.Hooks.Store("reload.session.menu", reload)
 	runtime.MenuSetApplicationMenu(c.Context, menus)
