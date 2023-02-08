@@ -428,10 +428,9 @@ export default function (props) {
                         </Col>
                         <Col>
                                 <span className="ssh-command" key={Math.random()}>
-                                <a href="#" onDoubleClick={() => SSHConnect(item)}>
+                                <span onClick={() => SSHConnect(item)} className="connect-name">
                                     {item.label === "" ? "未命名" : item.label}
-                                </a>
-                                <a href="#" onClick={() => editConnectLabel(item)}> <EditOutlined/> </a>
+                                </span>
                                 <br/>
                                     {makeRDPCmdline(item, true)}
                                 </span>

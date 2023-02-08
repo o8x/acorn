@@ -1,3 +1,8 @@
 .title {
     user-select: none !important;
 }
+
+.connect-name {
+    color: #1890ff;
+    cursor: pointer;
+}
