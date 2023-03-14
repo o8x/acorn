@@ -6,6 +6,7 @@ import {
     ApartmentOutlined,
     BorderlessTableOutlined,
     BugOutlined,
+    CalculatorOutlined,
     CheckOutlined,
     ClockCircleOutlined,
     CloudServerOutlined,
@@ -39,6 +40,7 @@ import Home from "./Pages/Home"
 import ProxyIPTester from "./Pages/ProxyIPTester"
 import Automation from "./Pages/Automation"
 import {SettingService, then} from "./rpc"
+import Nutrient from "./Pages/Nutrient"
 
 const {Content, Sider} = Layout
 
@@ -60,11 +62,12 @@ const items = [
     getItem("Json beautifier", "/toy-json", <FormatPainterOutlined/>),
     getItem("Regular expression", "/toy-regtest", <CheckOutlined/>),
     getItem("Radix", "/toy-radix", <FunctionOutlined/>),
-    getItem("Timestamp", "/toy-timestamp", <ClockCircleOutlined/>),
     getItem("cURL GUI", "/toy-proxyiptester", <BugOutlined/>),
+    getItem("Nutrient", "/toy-nutrient", <CalculatorOutlined />),
     getItem("Toys", "/toy-toys", <ToolOutlined/>, [
         getItem("Clock", "/toy-clock", <FieldTimeOutlined/>),
         getItem("Tencent COS", "/toy-cos", <CloudServerOutlined/>),
+        getItem("Timestamp", "/toy-timestamp", <ClockCircleOutlined/>),
         getItem("Script", "/toy-scripteditor", <EditOutlined/>),
         getItem("Password", "/toy-makepass", <CreditCardOutlined/>),
         getItem("Ascii", "/toy-ascii", <BorderlessTableOutlined/>, [
@@ -188,6 +191,9 @@ export default function (props) {
                     />
                     <Route path="/toy-cos"
                            element={<TencentCos collapsed={collapsed} setCollapse={setCollapsed}/>}
+                    />
+                    <Route path="/toy-nutrient"
+                           element={<Nutrient collapsed={collapsed} setCollapse={setCollapsed}/>}
                     />
                     <Route path="/"
                            element={<Home collapsed={collapsed} setCollapse={setCollapsed}/>}
